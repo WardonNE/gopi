@@ -11,7 +11,7 @@ type StringBuilder struct {
 	strings.Builder
 }
 
-func NewStringBuilder[S ~string](str S) StringBuilder {
+func NewStringBuilder[S ~string | ~rune | ~[]byte](str S) StringBuilder {
 	var builder strings.Builder
 	builder.WriteString(string(str))
 	return StringBuilder{
