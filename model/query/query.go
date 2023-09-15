@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/wardonne/gopi/model/pagination"
-	"github.com/wardonne/gopi/support/container/list"
+	"github.com/wardonne/gopi/support/collection/list"
 	"gorm.io/gorm"
 )
 

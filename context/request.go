@@ -10,7 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/wardonne/gopi/binding"
 	"github.com/wardonne/gopi/context/formdata"
-	"github.com/wardonne/gopi/support/container/maps"
+	"github.com/wardonne/gopi/support/maps"
 	"github.com/wardonne/gopi/validation"
 )
 
