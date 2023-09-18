@@ -16,3 +16,10 @@ func (jsonParser *JSONParser) Parse(request *http.Request, container any) error 
 	decoder := json.NewDecoder(request.Body)
 	return decoder.Decode(container)
 }
+
+type jsonBinding struct {
+}
+
+func (j *jsonBinding) Parser() Parser {
+	return &JSONParser{}
+}

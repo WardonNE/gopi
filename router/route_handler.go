@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/wardonne/gopi/binding"
 	"github.com/wardonne/gopi/context"
 	"github.com/wardonne/gopi/pipeline"
 	"github.com/wardonne/gopi/validation"
@@ -26,12 +27,12 @@ func (route *RouteHandler) Use(middlewares ...middleware.IMiddleware) IRoute {
 	return route
 }
 
-func (route *RouteHandler) Validate(form validation.IValidateForm) IRoute {
+func (route *RouteHandler) Validate(form validation.IValidateForm, bindings ...binding.Binding) IRoute {
 	formType := reflect.TypeOf(form)
 	if formType.Kind() != reflect.Ptr {
 		panic("Non-ptr: " + formType.String())
 	}
-	route.validation = middleware.Validation(form)
+	route.validation = middleware.Validation(form, bindings...)
 	return route
 }
 

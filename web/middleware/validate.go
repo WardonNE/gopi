@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/wardonne/gopi/binding"
 	"github.com/wardonne/gopi/context"
 	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web"
@@ -13,11 +14,12 @@ type ValidateMiddleware struct {
 	form      validation.IValidateForm
 	formType  reflect.Type
 	validator *validation.Validator
+	bindings  []binding.Binding
 }
 
 func (v *ValidateMiddleware) Handle(request *context.Request, next web.Handler) context.IResponse {
 	form := reflect.New(v.formType).Interface().(validation.IValidateForm)
-	if err := request.Bind(form); err != nil {
+	if err := request.Bind(form, v.bindings...); err != nil {
 		panic(err)
 	}
 	translator := v.validator.Translator(request.GetString("language", "en"))
@@ -40,11 +42,12 @@ func (v *ValidateMiddleware) Handle(request *context.Request, next web.Handler) 
 	return next(request)
 }
 
-func Validation(form validation.IValidateForm) *ValidateMiddleware {
+func Validation(form validation.IValidateForm, bindings ...binding.Binding) *ValidateMiddleware {
 	vm := &ValidateMiddleware{
 		form:      form,
 		formType:  reflect.TypeOf(form).Elem(),
 		validator: validation.Default(),
+		bindings:  bindings,
 	}
 	return vm
 }

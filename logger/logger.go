@@ -6,8 +6,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var l = Must(New(WithFormatter(jsonFormatter), WithLevel(logrus.InfoLevel)))
-
 type Logger struct {
 	*logrus.Logger
 }

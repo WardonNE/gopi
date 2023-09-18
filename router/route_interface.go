@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/wardonne/gopi/binding"
 	"github.com/wardonne/gopi/context"
 	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web/middleware"
@@ -9,7 +10,7 @@ import (
 type IRoute interface {
 	AS(name string) IRoute
 	Use(middlewares ...middleware.IMiddleware) IRoute
-	Validate(form validation.IValidateForm) IRoute
+	Validate(form validation.IValidateForm, bindings ...binding.Binding) IRoute
 	Name() string
 	Method() string
 	Path() string

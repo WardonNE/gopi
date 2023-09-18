@@ -2,6 +2,6 @@ package binding
 
 import "net/http"
 
-type IParser interface {
+type Parser interface {
 	Parse(request *http.Request, container any) error
 }

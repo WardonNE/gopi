@@ -22,3 +22,10 @@ func (uriParser *URIParser) Parse(request *http.Request, container any) error {
 	}
 	return utils.FormDataToStruct(form, container, "param")
 }
+
+type uriBinding struct {
+}
+
+func (u *uriBinding) Parser() Parser {
+	return &URIParser{}
+}

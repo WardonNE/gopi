@@ -25,3 +25,9 @@ func (formParser *FormParser) Parse(request *http.Request, container any) error 
 	}
 	return utils.FormDataToStruct(form, container, "form")
 }
+
+type formBinding struct{}
+
+func (f *formBinding) Parser() Parser {
+	return &FormParser{}
+}

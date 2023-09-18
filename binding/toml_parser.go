@@ -16,3 +16,10 @@ func (tomlParser *TOMLParser) Parse(request *http.Request, container any) error 
 	decoder := toml.NewDecoder(request.Body)
 	return decoder.Decode(container)
 }
+
+type tomlBinding struct {
+}
+
+func (t *tomlBinding) Parser() Parser {
+	return &TOMLParser{}
+}

@@ -372,23 +372,29 @@ func (request *Request) ClientIP() string {
 	return ""
 }
 
-func (request *Request) Bind(form validation.IValidateForm) error {
-	var parsers = []binding.IParser{
+func (request *Request) Bind(form validation.IValidateForm, bindings ...binding.Binding) error {
+	var parsers = []binding.Parser{
 		new(binding.URIParser),
 	}
-	if request.IsGet() {
-		parsers = append(parsers, new(binding.FormParser))
+	if len(bindings) == 0 {
+		if request.IsGet() {
+			parsers = append(parsers, new(binding.FormParser))
+		} else {
+			parsers = append(parsers, new(binding.FormParser))
+			contentType := request.Header("Content-Type")
+			if contentType == MIMEJSON {
+				parsers = append(parsers, new(binding.JSONParser))
+			} else if contentType == MIMEXML {
+				parsers = append(parsers, new(binding.XMLParser))
+			} else if contentType == MIMEYAML {
+				parsers = append(parsers, new(binding.YAMLParser))
+			} else if contentType == MIMETOML {
+				parsers = append(parsers, new(binding.TOMLParser))
+			}
+		}
 	} else {
-		parsers = append(parsers, new(binding.FormParser))
-		contentType := request.Header("Content-Type")
-		if contentType == MIMEJSON {
-			parsers = append(parsers, new(binding.JSONParser))
-		} else if contentType == MIMEXML {
-			parsers = append(parsers, new(binding.XMLParser))
-		} else if contentType == MIMEYAML {
-			parsers = append(parsers, new(binding.YAMLParser))
-		} else if contentType == MIMETOML {
-			parsers = append(parsers, new(binding.TOMLParser))
+		for _, binding := range bindings {
+			parsers = append(parsers, binding.Parser())
 		}
 	}
 	for _, parser := range parsers {

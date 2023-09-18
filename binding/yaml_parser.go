@@ -16,3 +16,10 @@ func (yamlParser *YAMLParser) Parse(request *http.Request, container any) error 
 	decoder := yaml.NewDecoder(request.Body)
 	return decoder.Decode(container)
 }
+
+type yamlBinding struct {
+}
+
+func (y *yamlBinding) Parser() Parser {
+	return &YAMLParser{}
+}
