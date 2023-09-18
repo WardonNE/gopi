@@ -6,16 +6,6 @@ import (
 	"github.com/wardonne/gopi/validation/translator"
 )
 
-var v = New().WithTranslator(
-	new(translator.ENTranslator),
-	new(translator.ENTranslator),
-	new(translator.ZHTranslator),
-)
-
-func Default() *Validator {
-	return v
-}
-
 type Validator struct {
 	*validator.Validate
 	uni *ut.UniversalTranslator
