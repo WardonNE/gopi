@@ -40,4 +40,6 @@ func implements[E any]() {
 	var _ BlockingQueue[E] = (*ArrayBlockingQueue[E])(nil)
 	var _ BlockingQueue[E] = (*LinkedBlockingQueue[E])(nil)
 	var _ BlockingQueue[E] = (*PriorityBlockingQueue[E])(nil)
+	var _ BlockingQueue[Delayer[E]] = (*DelayQueue[E, Delayer[E]])(nil)
+	var _ BlockingQueue[E] = (*SynchronousQueue[E])(nil)
 }
