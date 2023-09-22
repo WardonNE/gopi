@@ -10,6 +10,7 @@ type WorkerPoolManager struct {
 
 func NewWorkerPoolManager() *WorkerPoolManager {
 	manager := new(WorkerPoolManager)
+	manager.pools = maps.NewSyncHashMap[string, *WorkerPool]()
 	return manager
 }
 
@@ -29,17 +30,23 @@ func (wpm *WorkerPoolManager) CreateWorkerPool(name string, driver IWorkerPoolDr
 		return wpm.pools.Get(name), false
 	}
 	workerPool = NewWorkerPool(driver, options...)
+	workerPool.name = name
 	wpm.pools.Set(name, workerPool)
 	return workerPool, true
 }
 
 // AddWorkerPool registers an existing worker pool
-func (wpm *WorkerPoolManager) AddWorkerPool(name string, workerPool *WorkerPool) bool {
+func (wpm *WorkerPoolManager) AddWorkerPool(name string, workerPool *WorkerPool) (bool, error) {
 	if wpm.pools.ContainsKey(name) {
-		return false
+		return false, ErrWorkerPoolNameExists
+	}
+	if wpm.pools.ContainsValue(func(value *WorkerPool) bool {
+		return workerPool.id == value.id
+	}) {
+		return false, ErrWorkerPoolInstanceExists
 	}
 	wpm.pools.Set(name, workerPool)
-	return true
+	return true, nil
 }
 
 // StartWorkerPool starts the specific worker pool

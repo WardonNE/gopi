@@ -1,6 +1,7 @@
 package workerpool
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -20,6 +21,7 @@ const (
 // it accepts Job and push the job to workers
 type WorkerPool struct {
 	id        uuid.UUID
+	name      string
 	status    WorkerPoolStatus
 	createdAt time.Time
 	startAt   time.Time
@@ -29,13 +31,15 @@ type WorkerPool struct {
 	workers     *maps.HashMap[uuid.UUID, *Worker]
 	stopChannel chan struct{}
 
-	driver        IWorkerPoolDriver
-	maxWorkers    int
+	driver     IWorkerPoolDriver
+	maxWorkers int
+	// worker configs
 	workerConfigs struct {
 		batch          int
 		maxIdleTime    time.Duration
 		maxStoppedTime time.Duration
 	}
+	// job configs
 	jobConfigs struct {
 		maxAttempts              int
 		retryDelay               time.Duration
@@ -44,6 +48,8 @@ type WorkerPool struct {
 		maxExecuteTimePerAttempt time.Duration
 		maxExecuteTimeTotal      time.Duration
 	}
+	// listeners
+	progressListener func(*Progress)
 }
 
 // DefaultWorkerPool creates WorkerPool instance with specific driver and default configs
@@ -106,6 +112,10 @@ func (wp *WorkerPool) ID() uuid.UUID {
 	return wp.id
 }
 
+func (wp *WorkerPool) Name() string {
+	return wp.name
+}
+
 // Status returns the active status of the WorkerPool
 func (wp *WorkerPool) Status() WorkerPoolStatus {
 	return wp.status
@@ -147,42 +157,50 @@ func (wp *WorkerPool) start() {
 }
 
 // Dispatch dispatches job
-func (p *WorkerPool) Dispatch(job IJob) bool {
-	if p.IsStopped() {
+func (wp *WorkerPool) Dispatch(job IJob) bool {
+	if wp.IsStopped() {
 		return false
 	}
-	ok := p.driver.Enqueue(job)
-	p.spawnWorkers()
+	ok := wp.driver.Enqueue(job)
+	if wp.progressListener != nil {
+		wp.progressListener(wp.Progress())
+	}
+	wp.spawnWorkers()
 	return ok
 }
 
 // Start starts the workerpool
-func (p *WorkerPool) Start() {
-	p.start()
+func (wp *WorkerPool) Start() {
+	wp.start()
+	watchCtx, watchCancel := context.WithCancel(context.Background())
+	defer watchCancel()
+	listenerCtx, listenerCancel := context.WithCancel(context.Background())
+	defer listenerCancel()
 	select {
-	case <-p.stopChannel:
-		p.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
-			p.stopWorker(entry.Value)
+	case <-wp.stopChannel:
+		wp.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
+			wp.stopWorker(entry.Value)
 			return true
 		})
-		p.stop()
+		wp.stop()
 	default:
-		p.spawnWorkers()
-		go p.watch()
+		wp.spawnWorkers()
+		go wp.watch(watchCtx)
+		go wp.notify(listenerCtx)
 	}
 }
 
 // Stop stops the worker pool and all the workers
-func (p *WorkerPool) Stop() {
-	p.stopChannel <- struct{}{}
+func (wp *WorkerPool) Stop() {
+	wp.stopChannel <- struct{}{}
 }
 
 // Release releases and removes the workerpool from the [WorkerPoolManager]
-func (p *WorkerPool) Release() {
-	if p.IsRunning() {
-		p.Stop()
+func (wp *WorkerPool) Release() {
+	if wp.IsRunning() {
+		wp.Stop()
 	}
-	close(p.stopChannel)
+	close(wp.stopChannel)
 }
 
 func (wp *WorkerPool) shouldStopWorker(w *Worker) bool {
@@ -193,31 +211,50 @@ func (wp *WorkerPool) shouldReleaseWorker(w *Worker) bool {
 	return w.IsStopped() && time.Since(w.stoppedAt) >= wp.workerConfigs.maxStoppedTime
 }
 
-func (p *WorkerPool) stopWorker(w *Worker) {
+func (wp *WorkerPool) stopWorker(w *Worker) {
 	w.Stop()
 }
 
-func (p *WorkerPool) releaseWorker(w *Worker) {
+func (wp *WorkerPool) releaseWorker(w *Worker) {
 	w.release()
-	p.workers.Remove(w.id)
+	wp.workers.Remove(w.id)
 }
 
-func (p *WorkerPool) watch() {
+func (wp *WorkerPool) notify(ctx context.Context) {
 	for {
-		wg := sync.WaitGroup{}
-		workers := p.workers.Values()
-		for _, w := range workers {
-			wg.Add(1)
-			go func(w *Worker) {
-				defer wg.Done()
-				if p.shouldStopWorker(w) {
-					p.stopWorker(w)
-				} else if p.shouldReleaseWorker(w) {
-					p.releaseWorker(w)
-				}
-			}(w)
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if wp.progressListener != nil {
+				wp.progressListener(wp.Progress())
+			}
 		}
-		wg.Wait()
+		time.Sleep(time.Second)
+	}
+}
+
+func (wp *WorkerPool) watch(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			wg := sync.WaitGroup{}
+			workers := wp.workers.Values()
+			for _, w := range workers {
+				wg.Add(1)
+				go func(w *Worker) {
+					defer wg.Done()
+					if wp.shouldStopWorker(w) {
+						wp.stopWorker(w)
+					} else if wp.shouldReleaseWorker(w) {
+						wp.releaseWorker(w)
+					}
+				}(w)
+			}
+			wg.Wait()
+		}
 	}
 }
 
@@ -258,18 +295,18 @@ func (wp *WorkerPool) spawnWorkers() {
 }
 
 // Workers returns a slice of Workers
-func (p *WorkerPool) Workers() []*Worker {
-	return p.workers.Values()
+func (wp *WorkerPool) Workers() []*Worker {
+	return wp.workers.Values()
 }
 
 // Progress returns active progress
-func (p *WorkerPool) Progress() *Progress {
+func (wp *WorkerPool) Progress() *Progress {
 	return &Progress{
-		Total:     p.driver.Total(),
-		Pending:   p.driver.PendingCount(),
-		Executing: p.driver.ExecutingCount(),
-		Completed: p.driver.CompletedCount(),
-		Success:   p.driver.SuccessCount(),
-		Failed:    p.driver.FailedCount(),
+		Total:     wp.driver.Total(),
+		Pending:   wp.driver.PendingCount(),
+		Executing: wp.driver.ExecutingCount(),
+		Completed: wp.driver.CompletedCount(),
+		Success:   wp.driver.SuccessCount(),
+		Failed:    wp.driver.FailedCount(),
 	}
 }

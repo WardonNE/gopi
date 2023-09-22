@@ -2,28 +2,28 @@ package eventbus
 
 var eventBus = NewEventBus()
 
-// ListChannels lists all channels
-func ListChannels() []string {
-	return eventBus.ListChannels()
+// ListEvents lists all events
+func ListEvents() []string {
+	return eventBus.ListEvents()
 }
 
-// GetChannel returns specific channel
-func GetChannel(topic string) *EventChannel {
-	return eventBus.GetChannel(topic)
+// GetEvent returns specific event
+func GetEvent(topic string) IEvent {
+	return eventBus.GetEvent(topic)
 }
 
-// CreateChannel creates a new channel when it does not exists and returns the created channel
-// If the specific channel already exists, it returns the channel
-func CreateChannel(topic string) *EventChannel {
-	return eventBus.CreateChannel(topic)
+// CreateEvent creates a new event when it does not exists and returns the created event
+// If the specific event already exists, it returns the event
+func CreateEvent(event IEvent) IEvent {
+	return eventBus.CreateEvent(event)
 }
 
-// DeleteChannel deletes specific channel
-func DeleteChannel(topic string) {
-	eventBus.DeleteChannel(topic)
+// DeleteEvent deletes specific event
+func DeleteEvent(topic string) {
+	eventBus.DeleteEvent(topic)
 }
 
-// DispatchTo dispatches a new message to specific channel
+// DispatchTo dispatches a new message to specific event
 func DispatchTo(topic string, data any) {
 	eventBus.DispatchTo(topic, data)
 }

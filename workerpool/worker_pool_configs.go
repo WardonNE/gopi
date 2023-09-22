@@ -37,6 +37,8 @@ type WorkerPoolConfigs struct {
 		MaxExecuteTimePerAttempt time.Duration
 		MaxExecuteTimeTotal      time.Duration
 	}
+	// events
+	OnProgressUpdated func(*Progress)
 }
 
 // ToOptions converts the configurations to [Option]s
@@ -52,5 +54,6 @@ func (configs *WorkerPoolConfigs) ToOptions() []Option {
 		JobRetryDelayStep(configs.JobConfigs.RetryDelayStep),
 		JobMaxExecuteTimeTotal(configs.JobConfigs.MaxExecuteTimeTotal),
 		JobMaxExecuteTimePerAttempt(configs.JobConfigs.MaxExecuteTimePerAttempt),
+		ProgressListener(configs.OnProgressUpdated),
 	}
 }

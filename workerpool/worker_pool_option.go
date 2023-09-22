@@ -6,6 +6,8 @@ import (
 
 type Option func(*WorkerPool)
 
+var noneOption = func(*WorkerPool) {}
+
 // MaxWorkers sets count of workers, default is 3
 func MaxWorkers(count int) Option {
 	return func(wp *WorkerPool) {
@@ -95,5 +97,14 @@ func WorkerMaxStoppedTime(d time.Duration) Option {
 			d = 0
 		}
 		wp.workerConfigs.maxStoppedTime = d
+	}
+}
+
+func ProgressListener(listener func(*Progress)) Option {
+	if listener == nil {
+		return noneOption
+	}
+	return func(wp *WorkerPool) {
+		wp.progressListener = listener
 	}
 }

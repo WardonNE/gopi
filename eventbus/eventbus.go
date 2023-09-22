@@ -1,56 +1,52 @@
 package eventbus
 
 import (
-	"github.com/wardonne/gopi/support/collection/set"
 	"github.com/wardonne/gopi/support/maps"
 )
 
 type EventBus struct {
-	channels *maps.SyncHashMap[string, *EventChannel]
+	events *maps.SyncHashMap[string, IEvent]
 }
 
 // NewEventBus creates a new event bus
 func NewEventBus() *EventBus {
 	return &EventBus{
-		channels: maps.NewSyncHashMap[string, *EventChannel](),
+		events: maps.NewSyncHashMap[string, IEvent](),
 	}
 }
 
-// GetChannel returns specific channel
-func (eb *EventBus) ListChannels() []string {
-	return eb.channels.Keys()
+// ListEvents lists all events
+func (eb *EventBus) ListEvents() []string {
+	return eb.events.Keys()
 }
 
-// GetChannel returns specific channel
-func (eb *EventBus) GetChannel(topic string) *EventChannel {
-	if eb.channels.ContainsKey(topic) {
-		return eb.channels.Get(topic)
+// GetEvent returns specific event
+func (eb *EventBus) GetEvent(topic string) IEvent {
+	if eb.events.ContainsKey(topic) {
+		return eb.events.Get(topic)
 	}
 	return nil
 }
 
-// CreateChannel creates a new channel when it does not exists and returns the created channel
-// If the specific channel already exists, it returns the channel
-func (eb *EventBus) CreateChannel(topic string) *EventChannel {
-	if eb.channels.ContainsKey(topic) {
-		return eb.channels.Get(topic)
+// CreateEvent creates a new event when it does not exists and returns the created event
+// If the specific event already exists, it returns the event
+func (eb *EventBus) CreateEvent(event IEvent) IEvent {
+	if eb.events.ContainsKey(event.Topic()) {
+		return eb.events.Get(event.Topic())
 	}
-	channel := &EventChannel{
-		listeners: set.NewHashSet[Listener](),
-	}
-	eb.channels.Set(topic, channel)
-	return channel
+	eb.events.Set(event.Topic(), event)
+	return event
 }
 
-// DeleteChannel deletes specific channel
-func (eb *EventBus) DeleteChannel(topic string) {
-	eb.channels.Remove(topic)
+// DeleteEvent deletes event by specific topic
+func (eb *EventBus) DeleteEvent(topic string) {
+	eb.events.Remove(topic)
 }
 
-// DispatchTo dispatches a new message to specific channel
+// DispatchTo dispatches a new message to specific event by topic
 func (eb *EventBus) DispatchTo(topic string, data any) {
-	if eb.channels.ContainsKey(topic) {
-		channel := eb.channels.Get(topic)
-		channel.Notify(data)
+	if eb.events.ContainsKey(topic) {
+		event := eb.events.Get(topic)
+		event.Notify(data)
 	}
 }
