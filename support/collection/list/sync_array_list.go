@@ -14,6 +14,7 @@ type SyncArrayList[E any] struct {
 
 func NewSyncArrayList[E any](values ...E) *SyncArrayList[E] {
 	syncArrayList := new(SyncArrayList[E])
+	syncArrayList.mu = new(sync.RWMutex)
 	syncArrayList.FromArray(values)
 	return syncArrayList
 }

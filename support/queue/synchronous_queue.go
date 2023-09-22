@@ -73,31 +73,20 @@ func (q *SynchronousQueue[E]) DequeueWithBlock() (value E, ok bool) {
 
 func (q *SynchronousQueue[E]) EnqueueWithTimeout(value E, duration time.Duration) bool {
 	timeout := time.After(duration)
-	done := make(chan struct{})
-	go func() {
-		q.channel <- value
-		done <- struct{}{}
-	}()
 	select {
 	case <-timeout:
 		return false
-	case <-done:
+	case q.channel <- value:
 		return true
 	}
 }
 
 func (q *SynchronousQueue[E]) DequeueWithTimeout(duration time.Duration) (value E, ok bool) {
 	timeout := time.After(duration)
-	done := make(chan struct{})
-	go func() {
-		value = <-q.channel
-		ok = true
-		done <- struct{}{}
-	}()
 	select {
 	case <-timeout:
 		return
-	case <-done:
+	case <-q.channel:
 		return
 	}
 }

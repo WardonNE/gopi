@@ -141,11 +141,15 @@ func (q *LinkedBlockingQueue[E]) EnqueueWithTimeout(value E, duration time.Durat
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
-		q.EnqueueWithBlock(value)
-		done <- struct{}{}
+		for q.cap == q.items.Count() {
+			q.putLock.Wait()
+		}
+		close(done)
 	}()
 	select {
 	case <-done:
+		q.items.Push(value)
+		q.takeLock.Broadcast()
 		return true
 	case <-timeout:
 		return false
@@ -156,12 +160,15 @@ func (q *LinkedBlockingQueue[E]) DequeueWithTimeout(duration time.Duration) (val
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
-		value, ok = q.DequeueWithBlock()
-		done <- struct{}{}
+		for q.items.IsEmpty() {
+			q.takeLock.Wait()
+		}
 	}()
 	select {
 	case <-done:
-		return
+		value = q.items.Shift()
+		q.putLock.Broadcast()
+		return value, true
 	case <-timeout:
 		return
 	}

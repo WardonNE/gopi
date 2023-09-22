@@ -139,12 +139,16 @@ func (q *PriorityBlockingQueue[E]) EnqueueWithTimeout(value E, duration time.Dur
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
-		q.EnqueueWithBlock(value)
-		done <- struct{}{}
+		for q.cap == q.queue.Count() {
+			q.putLock.Wait()
+		}
+		close(done)
 	}()
 	select {
 	case <-done:
-		return true
+		ok := q.queue.Enqueue(value)
+		q.takeLock.Broadcast()
+		return ok
 	case <-timeout:
 		return false
 	}
@@ -154,11 +158,15 @@ func (q *PriorityBlockingQueue[E]) DequeueWithTimeout(duration time.Duration) (v
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
-		value, ok = q.DequeueWithBlock()
-		done <- struct{}{}
+		for q.queue.IsEmpty() {
+			q.takeLock.Wait()
+		}
+		close(done)
 	}()
 	select {
 	case <-done:
+		value, ok = q.queue.Dequeue()
+		q.putLock.Broadcast()
 		return
 	case <-timeout:
 		return

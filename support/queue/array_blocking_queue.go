@@ -179,11 +179,19 @@ func (q *ArrayBlockingQueue[E]) EnqueueWithTimeout(value E, duration time.Durati
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
-		q.EnqueueWithBlock(value)
-		done <- struct{}{}
+		q.lock.Lock()
+		defer q.lock.Unlock()
+		for q.cap == q.size {
+			q.putLock.Wait()
+		}
+		close(done)
 	}()
 	select {
 	case <-done:
+		q.items.Set(q.enqueueIndex, value)
+		q.size++
+		q.enqueueIndex = q.moveIndex(q.enqueueIndex)
+		q.takeLock.Broadcast()
 		return true
 	case <-timeout:
 		return false
@@ -194,12 +202,22 @@ func (q *ArrayBlockingQueue[E]) DequeueWithTimeout(duration time.Duration) (valu
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
-		value, ok = q.DequeueWithBlock()
-		done <- struct{}{}
+		q.lock.Lock()
+		defer q.lock.Unlock()
+		for q.cap == q.size {
+			q.takeLock.Wait()
+		}
+		close(done)
 	}()
 	select {
 	case <-done:
-		return
+		var zero E
+		value = q.items.Get(q.dequeueIndex)
+		q.items.Set(q.dequeueIndex, zero)
+		q.size--
+		q.dequeueIndex = q.moveIndex(q.dequeueIndex)
+		q.putLock.Broadcast()
+		return value, true
 	case <-timeout:
 		return
 	}
