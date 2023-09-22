@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	uuid "github.com/satori/go.uuid"
-	"github.com/wardonne/gopi/context"
+	"github.com/google/uuid"
 	"github.com/wardonne/gopi/web"
+	"github.com/wardonne/gopi/web/context"
 )
 
 type RequestID struct {
@@ -15,7 +15,7 @@ func NewRequestID() *RequestID {
 	return &RequestID{
 		headerKey: "X-Request-ID",
 		generator: func() string {
-			return uuid.NewV4().String()
+			return uuid.New().String()
 		},
 	}
 }

@@ -8,10 +8,10 @@ import (
 	"sync"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/wardonne/gopi/binding"
-	"github.com/wardonne/gopi/context/formdata"
 	"github.com/wardonne/gopi/support/maps"
 	"github.com/wardonne/gopi/validation"
+	"github.com/wardonne/gopi/web/binding"
+	"github.com/wardonne/gopi/web/context/formdata"
 )
 
 type Request struct {

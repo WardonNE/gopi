@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/wardonne/gopi/context"
+	"github.com/wardonne/gopi/web/context"
 )
 
 type IController interface {

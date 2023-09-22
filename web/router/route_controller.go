@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/wardonne/gopi/context"
 	"github.com/wardonne/gopi/web"
+	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
 )
 

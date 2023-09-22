@@ -8,7 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wardonne/gopi/context/formdata"
+	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/web/context/formdata"
 )
 
 func FormDataToStruct(form *multipart.Form, container any, tag string) error {
@@ -199,23 +200,23 @@ func createValue(fieldType reflect.Type, form *multipart.Form, key string, tag r
 			if len(values) == 0 {
 
 			} else if fieldType == reflect.TypeOf(time.Duration(0)) {
-				v = reflect.ValueOf(StrToDuration(values[0]))
+				v = reflect.ValueOf(utils.StrToDuration(values[0]))
 			} else if fieldType == reflect.TypeOf(time.Time{}) {
 				dateFormat := time.DateTime
 				if tf, ok := tag.Lookup("date_format"); ok && tf != "" {
 					dateFormat = tf
 				}
-				v = reflect.ValueOf(StrToTime(values[0], dateFormat))
+				v = reflect.ValueOf(utils.StrToTime(values[0], dateFormat))
 			} else if fieldType.Kind() == reflect.String {
 				v = reflect.ValueOf(values[0])
 			} else if fieldType.Kind() == reflect.Int || fieldType.Kind() == reflect.Int8 || fieldType.Kind() == reflect.Int16 || fieldType.Kind() == reflect.Int32 || fieldType.Kind() == reflect.Int64 {
-				v = reflect.ValueOf(StrToInt(values[0])).Convert(fieldType)
+				v = reflect.ValueOf(utils.StrToInt(values[0])).Convert(fieldType)
 			} else if fieldType.Kind() == reflect.Uint || fieldType.Kind() == reflect.Uint8 || fieldType.Kind() == reflect.Uint16 || fieldType.Kind() == reflect.Uint32 || fieldType.Kind() == reflect.Uint64 {
-				v = reflect.ValueOf(StrToUint(values[0])).Convert(fieldType)
+				v = reflect.ValueOf(utils.StrToUint(values[0])).Convert(fieldType)
 			} else if fieldType.Kind() == reflect.Float32 || fieldType.Kind() == reflect.Float64 {
-				v = reflect.ValueOf(StrToFloat(values[0])).Convert(fieldType)
+				v = reflect.ValueOf(utils.StrToFloat(values[0])).Convert(fieldType)
 			} else if fieldType.Kind() == reflect.Bool {
-				v = reflect.ValueOf(StrToBool(values[0]))
+				v = reflect.ValueOf(utils.StrToBool(values[0]))
 			} else if fieldType.Kind() == reflect.Slice {
 				slice := reflect.MakeSlice(fieldType, 0, 0)
 				for _, item := range values {
@@ -237,10 +238,10 @@ func createValue(fieldType reflect.Type, form *multipart.Form, key string, tag r
 				v = array
 			} else if fieldType.Kind() == reflect.Map {
 				fieldValue := reflect.New(fieldType)
-				v = reflect.ValueOf(json.Unmarshal(StrToBytes(values[0]), fieldValue.Interface()))
+				v = reflect.ValueOf(json.Unmarshal(utils.StrToBytes(values[0]), fieldValue.Interface()))
 			} else if fieldType.Kind() == reflect.Struct {
 				fieldValue := reflect.New(fieldType)
-				v = reflect.ValueOf(json.Unmarshal(StrToBytes(values[0]), fieldValue.Interface()))
+				v = reflect.ValueOf(json.Unmarshal(utils.StrToBytes(values[0]), fieldValue.Interface()))
 			} else {
 				panic("unsupported field type")
 			}

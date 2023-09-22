@@ -4,10 +4,10 @@ import (
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/wardonne/gopi/binding"
-	"github.com/wardonne/gopi/context"
 	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web"
+	"github.com/wardonne/gopi/web/binding"
+	"github.com/wardonne/gopi/web/context"
 )
 
 type ValidateMiddleware struct {

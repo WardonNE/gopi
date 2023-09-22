@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/web/utils"
 )
 
 type URIParser struct {

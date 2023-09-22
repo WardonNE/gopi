@@ -3,9 +3,9 @@ package middleware
 import (
 	"time"
 
-	"github.com/wardonne/gopi/context"
 	"github.com/wardonne/gopi/logger"
 	"github.com/wardonne/gopi/web"
+	"github.com/wardonne/gopi/web/context"
 )
 
 type Logger struct {

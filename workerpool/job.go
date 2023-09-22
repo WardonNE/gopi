@@ -11,6 +11,8 @@ type IJob interface {
 	serializer.JSONSerializer
 	// Retryable returns whether a job is retryable
 	Retryable() bool
+	// ShouldRetry returns whether a job should be retried when err is occured
+	ShouldRetry(err error) bool
 	// MaxAttempts returns count of attempts.
 	// if nil is returned, it will use the pool's config, see [WorkerPoolConfigs]
 	// if negative is returned it will use 0
@@ -61,6 +63,10 @@ type Job struct {
 
 func (job *Job) Retryable() bool {
 	return true
+}
+
+func (job *Job) ShouldRetry(err error) bool {
+	return err != nil
 }
 
 func (job *Job) MaxAttempts() *int {

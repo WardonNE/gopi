@@ -214,6 +214,7 @@ func (w *Worker) execute(job IJob) {
 			} else {
 				retryConfigs.DelayStep = w.jobConfigs.retryDelayStep
 			}
+			retryConfigs.ShouldRetry = job.ShouldRetry
 			if err := retry.DoWithConfigs(executor, &retry.RetryConfigs{
 				Attempts: w.jobConfigs.maxAttempts,
 			}); err != nil {

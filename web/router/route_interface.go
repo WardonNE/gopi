@@ -1,9 +1,9 @@
 package router
 
 import (
-	"github.com/wardonne/gopi/binding"
-	"github.com/wardonne/gopi/context"
 	"github.com/wardonne/gopi/validation"
+	"github.com/wardonne/gopi/web/binding"
+	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
 )
 

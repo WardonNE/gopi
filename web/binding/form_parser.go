@@ -5,7 +5,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/web/utils"
 )
 
 type FormParser struct{}

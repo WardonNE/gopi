@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/wardonne/gopi/context"
+	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
 )
 
