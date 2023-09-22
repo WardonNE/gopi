@@ -2,10 +2,13 @@ package workerpool
 
 import (
 	"time"
+
+	"github.com/wardonne/gopi/support/serializer"
 )
 
 // IJob is job's interface
 type IJob interface {
+	serializer.JSONSerializer
 	// Retryable returns whether a job is retryable
 	Retryable() bool
 	// MaxAttempts returns count of attempts.
