@@ -23,7 +23,7 @@ func (route *RouteHandler) AS(name string) IRoute {
 }
 
 func (route *RouteHandler) Use(middlewares ...middleware.IMiddleware) IRoute {
-	route.middlewares = append(route.middlewares, middlewares...)
+	route.middlewares.AddAll(middlewares...)
 	return route
 }
 
@@ -42,7 +42,12 @@ func (route *RouteHandler) Handler() string {
 
 func (route *RouteHandler) HandleRequest(request *context.Request) context.IResponse {
 	pl := new(pipeline.Pipeline[*context.Request, context.IResponse])
-	pl = pl.Send(request).Through(route.middlewares...)
+	pipes := make([]pipeline.IPipe[*context.Request, context.IResponse], 0, route.middlewares.Count())
+	route.middlewares.Range(func(middleware middleware.IMiddleware) bool {
+		pipes = append(pipes, pipeline.AsPipe[*context.Request, context.IResponse](middleware))
+		return true
+	})
+	pl = pl.Send(request).Through(pipes...)
 	if route.HasValidation() {
 		pl = pl.AppendThrough(route.validation)
 	}

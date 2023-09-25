@@ -5,4 +5,4 @@ import (
 	"github.com/wardonne/gopi/web/context"
 )
 
-type Handler = pipeline.Handler[*context.Request, context.IResponse]
+type Handler = pipeline.Callback[*context.Request, context.IResponse]

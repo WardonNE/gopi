@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/wardonne/gopi/support/collection/list"
 	"github.com/wardonne/gopi/web"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
@@ -13,7 +14,7 @@ import (
 type RouteController struct {
 	Prefix         string
 	Routes         []*RouteAction
-	Middlewares    []middleware.IMiddleware
+	Middlewares    *list.ArrayList[middleware.IMiddleware]
 	Controller     web.IController
 	ControllerType reflect.Type
 }
@@ -27,7 +28,7 @@ func (group *RouteController) List() []IRoute {
 }
 
 func (group *RouteController) Use(middlewares ...middleware.IMiddleware) {
-	group.Middlewares = append(group.Middlewares, middlewares...)
+	group.Middlewares.AddAll(middlewares...)
 }
 
 func (group *RouteController) Route(method, path, handler string) *RouteAction {

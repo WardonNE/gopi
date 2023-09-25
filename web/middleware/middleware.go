@@ -5,4 +5,4 @@ import (
 	"github.com/wardonne/gopi/web/context"
 )
 
-type IMiddleware = pipeline.IPipe[*context.Request, context.IResponse]
+type IMiddleware = pipeline.Handler[*context.Request, context.IResponse]

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/wardonne/gopi/support/collection/list"
 	"github.com/wardonne/gopi/web"
 	"github.com/wardonne/gopi/web/middleware"
 )
@@ -13,7 +14,7 @@ type RouteGroup struct {
 	Prefix      string
 	RouteGroups []IRouteGroup
 	Routes      []*RouteHandler
-	Middlewares []middleware.IMiddleware
+	Middlewares *list.ArrayList[middleware.IMiddleware]
 }
 
 func (group *RouteGroup) List() []IRoute {
@@ -28,7 +29,7 @@ func (group *RouteGroup) List() []IRoute {
 }
 
 func (group *RouteGroup) Use(middlewares ...middleware.IMiddleware) {
-	group.Middlewares = append(group.Middlewares, middlewares...)
+	group.Middlewares.AddAll(middlewares...)
 }
 
 func (group *RouteGroup) Group(prefix string, callback func(group *RouteGroup)) *RouteGroup {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/wardonne/gopi/support/collection/list"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
 )
@@ -18,7 +19,7 @@ func New() *Router {
 	router := &Router{
 		RouteGroup: &RouteGroup{
 			Prefix:      "/",
-			Middlewares: make([]middleware.IMiddleware, 0),
+			Middlewares: list.NewArrayList[middleware.IMiddleware](),
 			RouteGroups: make([]IRouteGroup, 0),
 			Routes:      make([]*RouteHandler, 0),
 		},

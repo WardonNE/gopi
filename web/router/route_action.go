@@ -25,7 +25,7 @@ func (action *RouteAction) AS(name string) IRoute {
 }
 
 func (action *RouteAction) Use(middlewares ...middleware.IMiddleware) IRoute {
-	action.middlewares = append(action.middlewares, middlewares...)
+	action.middlewares.AddAll(middlewares...)
 	return action
 }
 
@@ -53,7 +53,12 @@ func (action *RouteAction) HandleRequest(request *context.Request) context.IResp
 		reflect.ValueOf(request),
 	})
 	pl := new(pipeline.Pipeline[*context.Request, context.IResponse])
-	pl = pl.Send(request).Through(action.middlewares...)
+	pipes := make([]pipeline.IPipe[*context.Request, context.IResponse], 0, action.middlewares.Count())
+	action.middlewares.Range(func(middleware middleware.IMiddleware) bool {
+		pipes = append(pipes, pipeline.AsPipe[*context.Request, context.IResponse](middleware))
+		return true
+	})
+	pl = pl.Send(request).Through(pipes...)
 	if action.HasValidation() {
 		pl = pl.AppendThrough(action.validation)
 	}

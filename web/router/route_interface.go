@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/wardonne/gopi/support/collection/list"
 	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web/binding"
 	"github.com/wardonne/gopi/web/context"
@@ -24,7 +25,7 @@ type Route struct {
 	name        string
 	method      string
 	path        string
-	middlewares []middleware.IMiddleware
+	middlewares *list.ArrayList[middleware.IMiddleware]
 	validation  *middleware.ValidateMiddleware
 }
 
@@ -41,7 +42,7 @@ func (route *Route) Path() string {
 }
 
 func (route *Route) Middlewares() []middleware.IMiddleware {
-	return route.middlewares
+	return route.middlewares.ToArray()
 }
 
 func (route *Route) HasValidation() bool {
