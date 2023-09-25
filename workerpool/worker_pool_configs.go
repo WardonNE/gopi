@@ -2,6 +2,8 @@ package workerpool
 
 import (
 	"time"
+
+	"github.com/wardonne/gopi/workerpool/subscriber"
 )
 
 var (
@@ -37,8 +39,8 @@ type WorkerPoolConfigs struct {
 		MaxExecuteTimePerAttempt time.Duration
 		MaxExecuteTimeTotal      time.Duration
 	}
-	// events
-	OnProgressUpdated func(*Progress)
+	// Subscriber
+	Subscriber subscriber.Subscriber
 }
 
 // ToOptions converts the configurations to [Option]s
@@ -54,6 +56,6 @@ func (configs *WorkerPoolConfigs) ToOptions() []Option {
 		JobRetryDelayStep(configs.JobConfigs.RetryDelayStep),
 		JobMaxExecuteTimeTotal(configs.JobConfigs.MaxExecuteTimeTotal),
 		JobMaxExecuteTimePerAttempt(configs.JobConfigs.MaxExecuteTimePerAttempt),
-		ProgressListener(configs.OnProgressUpdated),
+		Subscriber(configs.Subscriber),
 	}
 }

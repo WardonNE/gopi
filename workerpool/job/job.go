@@ -1,4 +1,4 @@
-package workerpool
+package job
 
 import (
 	"time"
@@ -6,8 +6,8 @@ import (
 	"github.com/wardonne/gopi/support/serializer"
 )
 
-// IJob is job's interface
-type IJob interface {
+// JobInterface is job's interface
+type JobInterface interface {
 	serializer.JSONSerializer
 	// Retryable returns whether a job is retryable
 	Retryable() bool
@@ -41,8 +41,6 @@ type IJob interface {
 	// when an error was returned, if necessary, it will be retried
 	// if it still returns an error after max attempts, an error will be passed to the [Failed] function
 	Handle() error
-	// Failed is the error handler
-	Failed(err error)
 }
 
 // Job is a basic job with retry enabled

@@ -8,6 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/wardonne/gopi/retry"
 	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/workerpool/driver"
+	"github.com/wardonne/gopi/workerpool/event"
+	"github.com/wardonne/gopi/workerpool/job"
 )
 
 type WorkerStatus int
@@ -35,9 +38,9 @@ type Worker struct {
 	idledAt   time.Time    // last idled time
 	stoppedAt time.Time    // last stopped time
 
-	jobs        IWorkerPoolDriver
+	driver      driver.DriverInterface
 	stopChannel chan stopSignal
-	activeJob   IJob
+	activeJob   job.JobInterface
 	// job configs
 	jobConfigs struct {
 		maxAttempts              int
@@ -55,7 +58,7 @@ func hire(wp *WorkerPool) *Worker {
 	w.status = WorkerStatusIdle
 	w.createdAt = time.Now()
 	w.idledAt = time.Now()
-	w.jobs = wp.driver
+	w.driver = wp.driver
 	w.stopChannel = make(chan stopSignal)
 	w.jobConfigs = wp.jobConfigs
 	return w
@@ -154,7 +157,7 @@ func (w *Worker) jobAttemptCtx() (context.Context, context.CancelFunc) {
 	return context.WithCancel(context.Background())
 }
 
-func (w *Worker) jobExecutor(job IJob) func() error {
+func (w *Worker) jobExecutor(job job.JobInterface) func() error {
 	return func() (err error) {
 		defer func() {
 			if exp := recover(); err != nil {
@@ -181,14 +184,14 @@ func (w *Worker) jobExecutor(job IJob) func() error {
 	}
 }
 
-func (w *Worker) execute(job IJob) {
+func (w *Worker) execute(job job.JobInterface) {
 	w.activeJob = job
 	w.working()
 	executeCtx, ltCancel := w.jobExecuteCtx()
 	defer ltCancel()
 	select {
 	case <-executeCtx.Done():
-		job.Failed(ErrJobExecuteTimeout)
+		w.driver.Fail(job)
 		w.idle()
 	default:
 		executor := w.jobExecutor(job)
@@ -215,14 +218,27 @@ func (w *Worker) execute(job IJob) {
 				retryConfigs.DelayStep = w.jobConfigs.retryDelayStep
 			}
 			retryConfigs.ShouldRetry = job.ShouldRetry
-			if err := retry.DoWithConfigs(executor, &retry.RetryConfigs{
+			retryConfigs.OnRetry = func(i int, err error) {
+				w.driver.DispatchEvent(event.NewRetryHandle(job, i, err))
+			}
+			w.driver.DispatchEvent(event.NewBeforeHandle(job))
+			err := retry.DoWithConfigs(executor, &retry.RetryConfigs{
 				Attempts: w.jobConfigs.maxAttempts,
-			}); err != nil {
-				job.Failed(err)
+			})
+			if err != nil {
+				w.driver.DispatchEvent(event.NewFailedHandle(job, err))
+				w.driver.Fail(job)
+			} else {
+				w.driver.DispatchEvent(event.NewAfterHandle(job))
+				w.driver.Ack(job)
 			}
 		} else {
 			if err := executor(); err != nil {
-				job.Failed(err)
+				w.driver.DispatchEvent(event.NewFailedHandle(job, err))
+				w.driver.Fail(job)
+			} else {
+				w.driver.DispatchEvent(event.NewAfterHandle(job))
+				w.driver.Ack(job)
 			}
 		}
 	}
@@ -246,7 +262,7 @@ func (w *Worker) Start() {
 			}
 			return
 		default:
-			if job, ok := w.jobs.Dequeue(); ok {
+			if job, ok := w.driver.Dequeue(); ok {
 				w.execute(job)
 			}
 		}
@@ -267,6 +283,6 @@ func (w *Worker) ForceStop() {
 
 func (w *Worker) release() {
 	close(w.stopChannel)
-	w.jobs = nil
+	w.driver = nil
 	w.activeJob = nil
 }

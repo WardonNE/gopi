@@ -2,6 +2,8 @@ package workerpool
 
 import (
 	"time"
+
+	"github.com/wardonne/gopi/workerpool/subscriber"
 )
 
 type Option func(*WorkerPool)
@@ -100,11 +102,12 @@ func WorkerMaxStoppedTime(d time.Duration) Option {
 	}
 }
 
-func ProgressListener(listener func(*Progress)) Option {
-	if listener == nil {
+// Subscriber adds a subscriber to queue events
+func Subscriber(subscriber subscriber.Subscriber) Option {
+	if subscriber == nil {
 		return noneOption
 	}
 	return func(wp *WorkerPool) {
-		wp.progressListener = listener
+		wp.driver.Subscribe(subscriber)
 	}
 }

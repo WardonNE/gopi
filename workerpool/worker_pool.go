@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/wardonne/gopi/support/maps"
+	"github.com/wardonne/gopi/workerpool/driver"
+	"github.com/wardonne/gopi/workerpool/job"
 )
 
 type WorkerPoolStatus int
@@ -31,7 +33,7 @@ type WorkerPool struct {
 	workers     *maps.HashMap[uuid.UUID, *Worker]
 	stopChannel chan struct{}
 
-	driver     IWorkerPoolDriver
+	driver     driver.DriverInterface
 	maxWorkers int
 	// worker configs
 	workerConfigs struct {
@@ -48,8 +50,6 @@ type WorkerPool struct {
 		maxExecuteTimePerAttempt time.Duration
 		maxExecuteTimeTotal      time.Duration
 	}
-	// listeners
-	progressListener func(*Progress)
 }
 
 // DefaultWorkerPool creates WorkerPool instance with specific driver and default configs
@@ -57,7 +57,7 @@ type WorkerPool struct {
 //
 //	wp := DefaultWorkerPool(driver.NewQueueDriver())
 //	wp.Start()
-func DefaultWorkerPool(driver IWorkerPoolDriver) *WorkerPool {
+func DefaultWorkerPool(driver driver.DriverInterface) *WorkerPool {
 	wp := new(WorkerPool)
 	// basic attributes
 	wp.id = uuid.New()
@@ -82,11 +82,12 @@ func DefaultWorkerPool(driver IWorkerPoolDriver) *WorkerPool {
 }
 
 // NewWorkerPool creates a [WorkerPool] instance with specific driver and custom [Option]s
+//
 // example:
 //
 //	wp := NewWorkerPool(driver.NewQueueDriver(), MaxWorkers(10))
 //	wp.Start()
-func NewWorkerPool(driver IWorkerPoolDriver, options ...Option) *WorkerPool {
+func NewWorkerPool(driver driver.DriverInterface, options ...Option) *WorkerPool {
 	wp := DefaultWorkerPool(driver)
 	for _, option := range options {
 		option(wp)
@@ -95,6 +96,7 @@ func NewWorkerPool(driver IWorkerPoolDriver, options ...Option) *WorkerPool {
 }
 
 // NewWorkerWithConfigs creates a [WorkerPool] instance with specific driver and custom [WorkerPoolConfigs].
+//
 // In fact, it change configs to a list of [Option]s and calls [NewWorkerPool] to create WorkerPool
 //
 // example:
@@ -103,7 +105,7 @@ func NewWorkerPool(driver IWorkerPoolDriver, options ...Option) *WorkerPool {
 //		MaxWorkers: 10
 //	})
 //	wp.Start()
-func NewWorkerWithConfigs(driver IWorkerPoolDriver, configs *WorkerPoolConfigs) *WorkerPool {
+func NewWorkerWithConfigs(driver driver.DriverInterface, configs *WorkerPoolConfigs) *WorkerPool {
 	return NewWorkerPool(driver, configs.ToOptions()...)
 }
 
@@ -112,6 +114,9 @@ func (wp *WorkerPool) ID() uuid.UUID {
 	return wp.id
 }
 
+// Name returns the name of the WorkerPool if it's added into WorkerPoolManager
+//
+// It will return empty string if this WorkerPool instance is not added into WorkerPoolManager
 func (wp *WorkerPool) Name() string {
 	return wp.name
 }
@@ -157,14 +162,11 @@ func (wp *WorkerPool) start() {
 }
 
 // Dispatch dispatches job
-func (wp *WorkerPool) Dispatch(job IJob) bool {
+func (wp *WorkerPool) Dispatch(job job.JobInterface) bool {
 	if wp.IsStopped() {
 		return false
 	}
 	ok := wp.driver.Enqueue(job)
-	if wp.progressListener != nil {
-		wp.progressListener(wp.Progress())
-	}
 	wp.spawnWorkers()
 	return ok
 }
@@ -174,8 +176,6 @@ func (wp *WorkerPool) Start() {
 	wp.start()
 	watchCtx, watchCancel := context.WithCancel(context.Background())
 	defer watchCancel()
-	listenerCtx, listenerCancel := context.WithCancel(context.Background())
-	defer listenerCancel()
 	select {
 	case <-wp.stopChannel:
 		wp.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
@@ -186,7 +186,6 @@ func (wp *WorkerPool) Start() {
 	default:
 		wp.spawnWorkers()
 		go wp.watch(watchCtx)
-		go wp.notify(listenerCtx)
 	}
 }
 
@@ -220,20 +219,6 @@ func (wp *WorkerPool) releaseWorker(w *Worker) {
 	wp.workers.Remove(w.id)
 }
 
-func (wp *WorkerPool) notify(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			if wp.progressListener != nil {
-				wp.progressListener(wp.Progress())
-			}
-		}
-		time.Sleep(time.Second)
-	}
-}
-
 func (wp *WorkerPool) watch(ctx context.Context) {
 	for {
 		select {
@@ -264,16 +249,15 @@ func (wp *WorkerPool) spawnWorkers() {
 	if wp.workers.Count() >= wp.maxWorkers {
 		return
 	}
-	pendingCount := wp.driver.PendingCount()
-	if pendingCount == 0 {
+	if wp.driver.IsEmpty() {
 		return
 	}
 	nc := wp.maxWorkers / wp.workerConfigs.batch
 	if nc == 0 {
 		nc = wp.maxWorkers
 	}
-	if nc > int(pendingCount) {
-		nc = int(pendingCount)
+	if count := wp.driver.Count(); nc > count {
+		nc = count
 	}
 	c := 0
 	// awake sleeping workers
@@ -297,16 +281,4 @@ func (wp *WorkerPool) spawnWorkers() {
 // Workers returns a slice of Workers
 func (wp *WorkerPool) Workers() []*Worker {
 	return wp.workers.Values()
-}
-
-// Progress returns active progress
-func (wp *WorkerPool) Progress() *Progress {
-	return &Progress{
-		Total:     wp.driver.Total(),
-		Pending:   wp.driver.PendingCount(),
-		Executing: wp.driver.ExecutingCount(),
-		Completed: wp.driver.CompletedCount(),
-		Success:   wp.driver.SuccessCount(),
-		Failed:    wp.driver.FailedCount(),
-	}
 }

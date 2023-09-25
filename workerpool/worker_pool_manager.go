@@ -2,6 +2,7 @@ package workerpool
 
 import (
 	"github.com/wardonne/gopi/support/maps"
+	"github.com/wardonne/gopi/workerpool/driver"
 )
 
 type WorkerPoolManager struct {
@@ -25,7 +26,7 @@ func (wpm *WorkerPoolManager) GetWorkerPool(name string) *WorkerPool {
 }
 
 // CreateWorkerPool creates a new worker pool with max worker count and registers it with the specific name
-func (wpm *WorkerPoolManager) CreateWorkerPool(name string, driver IWorkerPoolDriver, options ...Option) (workerPool *WorkerPool, isNew bool) {
+func (wpm *WorkerPoolManager) CreateWorkerPool(name string, driver driver.DriverInterface, options ...Option) (workerPool *WorkerPool, isNew bool) {
 	if wpm.pools.ContainsKey(name) {
 		return wpm.pools.Get(name), false
 	}

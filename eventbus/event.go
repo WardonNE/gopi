@@ -1,7 +1,7 @@
 package eventbus
 
-// IEvent is the interface of event
-type IEvent interface {
+// EventInterface is the interface of event
+type EventInterface interface {
 	// Topic returns the unique topic
 	Topic() string
 }

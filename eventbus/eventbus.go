@@ -8,24 +8,24 @@ import (
 	"github.com/wardonne/gopi/support/maps"
 )
 
-// IEventBus is event bus interface
-type IEventBus interface {
+// EventBusInterface is event bus interface
+type EventBusInterface interface {
 	// AddEvent registers an event to event bus.
 	//
 	// If topic exists, it will returns an error.
-	AddEvent(event IEvent) error
+	AddEvent(event EventInterface) error
 	// DeleteEvent unregisters an event from event bus.
-	DeleteEvent(event IEvent)
+	DeleteEvent(event EventInterface)
 	// DeleteTopic unregisters an event from evnet bus by topic.
 	DeleteTopic(topic string)
 	// ListEvents lists all registered events.
-	ListEvents() []IEvent
+	ListEvents() []EventInterface
 	// ListTopics lists all topics.
 	ListTopics() []string
 	// OnEvent binds listener clauses to specific event.
 	//
 	// If the topic of event is not found, it will returns an error.
-	OnEvent(event IEvent, clauses []ListenerClause) error
+	OnEvent(event EventInterface, clauses []ListenerClause) error
 	// OnTopic binds listener clauses to specific topic
 	//
 	// If the topic is not found, it will returns an error
@@ -33,7 +33,7 @@ type IEventBus interface {
 	// SubscribeEvent binds listeners to specific event.
 	//
 	// If the topic of event is not found, it will returns an error.
-	Listen(event IEvent, listeners []Listener) error
+	Listen(event EventInterface, listeners []Listener) error
 	// SubscribeEvent binds listeners to specific topic.
 	//
 	// If topic is not found, it will returns an error
@@ -45,26 +45,26 @@ type IEventBus interface {
 	// Dispatch dispatches an event
 	//
 	// param `data` will pass into [Listener.New]
-	Dispatch(event IEvent, data any) error
+	Dispatch(event EventInterface, data any) error
 }
 
-var _ IEventBus = (*EventBus)(nil)
+var _ EventBusInterface = (*EventBus)(nil)
 
 // EventBus is a basic implemention of [IEventBus]
 type EventBus struct {
-	events    *maps.SyncHashMap[string, IEvent]
+	events    *maps.SyncHashMap[string, EventInterface]
 	listeners *maps.SyncHashMap[string, *list.ArrayList[Listener]]
 }
 
 // NewEventBus creates a new [EventBus] instance
 func NewEventBus() *EventBus {
 	return &EventBus{
-		events: maps.NewSyncHashMap[string, IEvent](),
+		events: maps.NewSyncHashMap[string, EventInterface](),
 	}
 }
 
 // ListEvents implements [IEventBus].ListEvents
-func (eb *EventBus) ListEvents() []IEvent {
+func (eb *EventBus) ListEvents() []EventInterface {
 	return eb.events.Values()
 }
 
@@ -74,7 +74,7 @@ func (eb *EventBus) ListTopics() []string {
 }
 
 // AddEvent implements [IEventBus].AddEvent
-func (eb *EventBus) AddEvent(event IEvent) error {
+func (eb *EventBus) AddEvent(event EventInterface) error {
 	if eb.events.ContainsKey(event.Topic()) {
 		return fmt.Errorf("Topic \"%s\" exists", event.Topic())
 	}
@@ -84,7 +84,7 @@ func (eb *EventBus) AddEvent(event IEvent) error {
 }
 
 // DeleteEvent implements [IEventBus].DeleteEvent
-func (eb *EventBus) DeleteEvent(event IEvent) {
+func (eb *EventBus) DeleteEvent(event EventInterface) {
 	eb.events.Remove(event.Topic())
 	eb.listeners.Remove(event.Topic())
 }
@@ -96,7 +96,7 @@ func (eb *EventBus) DeleteTopic(topic string) {
 }
 
 // OnEvent implements [IEventBus].OnEvent
-func (eb *EventBus) OnEvent(event IEvent, clauses []ListenerClause) error {
+func (eb *EventBus) OnEvent(event EventInterface, clauses []ListenerClause) error {
 	if !eb.events.ContainsKey(event.Topic()) {
 		return fmt.Errorf("Event not found")
 	}
@@ -136,7 +136,7 @@ func (eb *EventBus) OnTopic(topic string, clauses []ListenerClause) error {
 }
 
 // Listen implements [IEventBus].Listen
-func (eb *EventBus) Listen(event IEvent, listeners []Listener) error {
+func (eb *EventBus) Listen(event EventInterface, listeners []Listener) error {
 	if !eb.events.ContainsKey(event.Topic()) {
 		return fmt.Errorf("Event not found")
 	}
@@ -177,7 +177,7 @@ func (eb *EventBus) Subscribe(subscriber Subscriber) error {
 }
 
 // Dispatch implements [IEventBus].Dispatch
-func (eb *EventBus) Dispatch(event IEvent, data any) error {
+func (eb *EventBus) Dispatch(event EventInterface, data any) error {
 	if !eb.events.ContainsKey(event.Topic()) {
 		return fmt.Errorf("Event not found")
 	}
