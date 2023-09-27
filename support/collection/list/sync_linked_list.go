@@ -108,12 +108,6 @@ func (l *SyncLinkedList[E]) Contains(matcher func(value E) bool) bool {
 	return l.list.Contains(matcher)
 }
 
-func (l *SyncLinkedList[E]) ContainsAny(matcher func(value E) bool) bool {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	return l.list.ContainsAny(matcher)
-}
-
 func (l *SyncLinkedList[E]) IndexOf(matcher func(value E) bool) int {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -135,7 +129,7 @@ func (l *SyncLinkedList[E]) SubList(from, to int) List[E] {
 	return syncList
 }
 
-func (l *SyncLinkedList[E]) SubLinkedList(from, to int) *SyncLinkedList[E] {
+func (l *SyncLinkedList[E]) SubSyncLinkedList(from, to int) *SyncLinkedList[E] {
 	return l.SubList(from, to).(*SyncLinkedList[E])
 }
 

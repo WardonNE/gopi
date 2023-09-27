@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/wardonne/gopi/support/builder"
 	"github.com/wardonne/gopi/support/collection"
 	"github.com/wardonne/gopi/support/compare"
 )
@@ -47,18 +46,7 @@ func (l *ArrayList[E]) FromArray(values []E) {
 
 // String implements support.Stringable
 func (l *ArrayList[E]) String() string {
-	if bytes, err := l.MarshalJSON(); err != nil {
-		sb := builder.NewStringBuilder("[")
-		for _, item := range l.items {
-			sb.WriteString(fmt.Sprintf("%v", item))
-			sb.WriteRune(' ')
-		}
-		sb.TrimSpace()
-		sb.WriteRune(']')
-		return sb.String()
-	} else {
-		return string(bytes)
-	}
+	return fmt.Sprintf("%v", l.items)
 }
 
 // Clone implements support.Clonable
@@ -104,8 +92,9 @@ func (l *ArrayList[E]) Pop() (value E) {
 	if len(l.items) == 0 {
 		return
 	}
-	el := l.items[0]
-	l.items = l.items[1:]
+	size := len(l.items)
+	el := l.items[size-1]
+	l.items = l.items[0 : size-1]
 	return el
 }
 
@@ -113,22 +102,12 @@ func (l *ArrayList[E]) Shift() (value E) {
 	if len(l.items) == 0 {
 		return
 	}
-	size := len(l.items)
-	el := l.items[size-1]
-	l.items = l.items[0 : size-1]
+	el := l.items[0]
+	l.items = l.items[1:]
 	return el
 }
 
 func (l *ArrayList[E]) Contains(matcher func(value E) bool) bool {
-	for _, item := range l.items {
-		if !matcher(item) {
-			return false
-		}
-	}
-	return true
-}
-
-func (l *ArrayList[E]) ContainsAny(matcher func(value E) bool) bool {
 	for _, item := range l.items {
 		if matcher(item) {
 			return true
@@ -202,7 +181,7 @@ func (l *ArrayList[E]) Unshift(value E) {
 
 func (l *ArrayList[E]) UnshiftAll(values ...E) {
 	valueSize := len(values)
-	for i, j := 0, valueSize; i < j; i, j = i+1, j-1 {
+	for i, j := 0, valueSize-1; i < j; i, j = i+1, j-1 {
 		values[i], values[j] = values[j], values[i]
 	}
 	l.items = append(values, l.items...)
@@ -229,8 +208,8 @@ func (l *ArrayList[E]) InsertAfter(index int, value E) {
 }
 
 func (l *ArrayList[E]) RemoveAt(index int) {
-	if index < 0 || index > len(l.items) {
-		return
+	if index < 0 || index >= len(l.items) {
+		panic(ErrIndexOutOfRange)
 	}
 	items := append([]E{}, l.items[0:index]...)
 	items = append(items, l.items[index+1:]...)

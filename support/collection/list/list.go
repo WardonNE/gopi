@@ -3,12 +3,12 @@ package list
 import (
 	"github.com/wardonne/gopi/support"
 	"github.com/wardonne/gopi/support/collection"
-	"github.com/wardonne/gopi/support/sort"
+	"github.com/wardonne/gopi/support/compare"
 )
 
 type List[E any] interface {
 	collection.Collection[E]
-	sort.Sortable[E]
+	compare.Sortable[E]
 	support.ReverseRangable[E]
 
 	Get(index int) E

@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/wardonne/gopi/support/builder"
 	"github.com/wardonne/gopi/support/collection"
 	"github.com/wardonne/gopi/support/compare"
 )
 
 type LinkedList[E any] struct {
-	root element[E]
-	size int
+	first *element[E]
+	last  *element[E]
+	size  int
 }
 
 // NewLinkedList[E any] create an empty LinkedList
@@ -22,23 +22,13 @@ func NewLinkedList[E any](values ...E) *LinkedList[E] {
 	return linkedList
 }
 
-func (l *LinkedList[E]) insert(el, at *element[E]) *element[E] {
-	el.prev = at
-	el.next = at.next
-	el.prev.next = el
-	el.next.prev = el
-	el.list = l
-	l.size++
-	return el
-}
-
-func (l *LinkedList[E]) insertValue(value E, at *element[E]) *element[E] {
-	return l.insert(&element[E]{Value: value}, at)
-}
-
 func (l *LinkedList[E]) remove(el *element[E]) {
-	el.prev.next = el.next
-	el.next.prev = el.prev
+	if el.prev != nil {
+		el.prev.next = el.next
+	}
+	if el.next != nil {
+		el.next.prev = el.prev
+	}
 	el.next = nil
 	el.prev = nil
 	el.list = nil
@@ -50,13 +40,13 @@ func (l *LinkedList[E]) node(index int) *element[E] {
 		return nil
 	}
 	if index < (l.size >> 1) {
-		el := l.root.next
+		el := l.first
 		for i := 0; i < index; i++ {
 			el = el.next
 		}
 		return el
 	} else {
-		el := l.root.prev
+		el := l.last
 		for i := l.size - 1; i > index; i-- {
 			el = el.prev
 		}
@@ -92,18 +82,7 @@ func (l *LinkedList[E]) FromArray(values []E) {
 }
 
 func (l *LinkedList[E]) String() string {
-	bytes, err := l.MarshalJSON()
-	if err != nil {
-		sb := builder.NewStringBuilder("[")
-		l.Range(func(value E) bool {
-			sb.WriteString(fmt.Sprintf("%v", value))
-			sb.WriteRune(' ')
-			return true
-		})
-		sb.TrimSpace()
-		return sb.String()
-	}
-	return string(bytes)
+	return fmt.Sprintf("%v", l.ToArray())
 }
 
 func (l *LinkedList[E]) Sort(comparator compare.Comparator[E]) {
@@ -151,7 +130,7 @@ func (l *LinkedList[E]) Pop() (value E) {
 	if l.size == 0 {
 		return
 	}
-	el := l.root.next
+	el := l.last
 	l.remove(el)
 	return el.Value
 }
@@ -160,22 +139,13 @@ func (l *LinkedList[E]) Shift() (value E) {
 	if l.size == 0 {
 		return
 	}
-	el := l.root.prev
+	el := l.first
 	l.remove(el)
 	return el.Value
 }
 
 func (l *LinkedList[E]) Contains(matcher func(value E) bool) bool {
-	for el := l.root.next; el != nil; el = el.next {
-		if !matcher(el.Value) {
-			return false
-		}
-	}
-	return true
-}
-
-func (l *LinkedList[E]) ContainsAny(matcher func(value E) bool) bool {
-	for el := l.root.next; el != nil; el = el.next {
+	for el := l.first; el != nil; el = el.next {
 		if matcher(el.Value) {
 			return true
 		}
@@ -184,7 +154,10 @@ func (l *LinkedList[E]) ContainsAny(matcher func(value E) bool) bool {
 }
 
 func (l *LinkedList[E]) IndexOf(matcher func(value E) bool) int {
-	for el, index := l.root.next, -1; el != nil; el, index = el.next, index+1 {
+	if l.size == 0 {
+		return -1
+	}
+	for el, index := l.first, 0; el.next != nil; el, index = el.next, index+1 {
 		if matcher(el.Value) {
 			return index
 		}
@@ -193,9 +166,12 @@ func (l *LinkedList[E]) IndexOf(matcher func(value E) bool) int {
 }
 
 func (l *LinkedList[E]) LastIndexOf(matcher func(value E) bool) int {
-	for el, index := l.root.prev, -1; el != nil; el, index = el.prev, index+1 {
+	if l.size == 0 {
+		return -1
+	}
+	for el, index := l.last, l.size-1; el.prev != nil; el, index = el.prev, index-1 {
 		if matcher(el.Value) {
-			return l.size - index - 1
+			return index
 		}
 	}
 	return -1
@@ -237,7 +213,16 @@ func (l *LinkedList[E]) AddAll(values ...E) {
 }
 
 func (l *LinkedList[E]) Push(value E) {
-	l.insertValue(value, l.root.prev)
+	el := &element[E]{Value: value}
+	if l.first == nil {
+		l.first = el
+		l.last = el
+	} else {
+		el.prev = l.last
+		l.last.next = el
+		l.last = el
+	}
+	l.size++
 }
 
 func (l *LinkedList[E]) PushAll(values ...E) {
@@ -247,33 +232,54 @@ func (l *LinkedList[E]) PushAll(values ...E) {
 }
 
 func (l *LinkedList[E]) Unshift(value E) {
-	l.insertValue(value, &l.root)
+	el := &element[E]{Value: value}
+	if l.first == nil {
+		l.first = el
+		l.last = el
+	} else {
+		el.next = l.first
+		l.first.prev = el
+		l.first = el
+	}
+	l.size++
 }
 
 func (l *LinkedList[E]) UnshiftAll(values ...E) {
-	l2 := NewLinkedList[E]()
-	l2.PushAll(values...)
-	l2.ReverseRange(func(value E) bool {
+	for _, value := range values {
 		l.Unshift(value)
-		return true
-	})
+	}
 }
 
 func (l *LinkedList[E]) InsertBefore(index int, value E) {
 	if index < 0 || index >= l.size {
 		panic(ErrIndexOutOfRange)
 	}
-	l.insertValue(value, l.node(index).prev)
+	el := &element[E]{Value: value}
+	at := l.node(index)
+	el.next = at
+	el.prev = at.prev
+	at.prev.next = el
+	at.prev = el
+	l.size++
 }
 
 func (l *LinkedList[E]) InsertAfter(index int, value E) {
 	if index < 0 || index >= l.size {
 		panic(ErrIndexOutOfRange)
 	}
-	l.insertValue(value, l.node(index))
+	el := &element[E]{Value: value}
+	at := l.node(index)
+	el.prev = at
+	el.next = at.next
+	at.next.prev = el
+	at.next = el
+	l.size++
 }
 
 func (l *LinkedList[E]) RemoveAt(index int) {
+	if index < 0 || index >= l.size {
+		panic(ErrIndexOutOfRange)
+	}
 	if el := l.node(index); el == nil {
 		return
 	} else {
@@ -282,20 +288,28 @@ func (l *LinkedList[E]) RemoveAt(index int) {
 }
 
 func (l *LinkedList[E]) Remove(matcher func(value E) bool) {
-	for el := l.root.next; el != nil; el = el.next {
+	if l.size == 0 {
+		return
+	}
+	els := make([]*element[E], 0)
+	for el := l.first; el.next != nil; el = el.next {
 		if matcher(el.Value) {
-			l.remove(el)
+			els = append(els, el)
 		}
+	}
+	for _, el := range els {
+		l.remove(el)
 	}
 }
 
 func (l *LinkedList[E]) Clear() {
-	l.root = element[E]{}
+	l.first = nil
+	l.last = nil
 	l.size = 0
 }
 
 func (l *LinkedList[E]) Range(callback func(value E) bool) {
-	for el := l.root.next; el != nil; el = el.next {
+	for el := l.first; el != nil; el = el.next {
 		if !callback(el.Value) {
 			break
 		}
@@ -303,23 +317,15 @@ func (l *LinkedList[E]) Range(callback func(value E) bool) {
 }
 
 func (l *LinkedList[E]) ReverseRange(callback func(value E) bool) {
-	for el := l.root.prev; el != nil; el = el.prev {
+	for el := l.last; el != nil; el = el.prev {
 		if !callback(el.Value) {
 			break
 		}
 	}
 }
 
-func (l *LinkedList[E]) ReverseRangeElement(callback func(element *element[E]) bool) {
-	for el := l.root.prev; el != nil; el = el.prev {
-		if !callback(el) {
-			break
-		}
-	}
-}
-
 func (l *LinkedList[E]) Map(callback func(value E) E) {
-	for el := l.root.prev; el != nil; el = el.next {
+	for el := l.first; el != nil; el = el.next {
 		el.Value = callback(el.Value)
 	}
 }

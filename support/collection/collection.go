@@ -16,7 +16,6 @@ type Collection[E any] interface {
 	IsEmpty() bool
 	IsNotEmpty() bool
 	Contains(matcher func(value E) bool) bool
-	ContainsAny(matcher func(value E) bool) bool
 	Add(value E)
 	AddAll(value ...E)
 	Remove(matcher func(value E) bool)

@@ -35,6 +35,7 @@ type AbstractDriver struct {
 	EventBus eventbus.EventBusInterface
 }
 
+// DispatchEvent dispatches specifia event
 func (driver *AbstractDriver) DispatchEvent(event eventbus.EventInterface) {
 	_ = driver.EventBus.Dispatch(event, nil)
 }

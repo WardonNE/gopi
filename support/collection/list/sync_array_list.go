@@ -8,13 +8,12 @@ import (
 )
 
 type SyncArrayList[E any] struct {
-	mu   *sync.RWMutex
+	mu   sync.RWMutex
 	list ArrayList[E]
 }
 
 func NewSyncArrayList[E any](values ...E) *SyncArrayList[E] {
 	syncArrayList := new(SyncArrayList[E])
-	syncArrayList.mu = new(sync.RWMutex)
 	syncArrayList.FromArray(values)
 	return syncArrayList
 }
@@ -63,7 +62,7 @@ func (l *SyncArrayList[E]) Copy() *SyncArrayList[E] {
 
 func (l *SyncArrayList[E]) Sort(comparator compare.Comparator[E]) {
 	l.mu.Lock()
-	defer l.mu.RUnlock()
+	defer l.mu.Unlock()
 	l.list.Sort(comparator)
 }
 
@@ -83,7 +82,7 @@ func (l *SyncArrayList[E]) IsNotEmpty() bool {
 
 func (l *SyncArrayList[E]) Get(index int) E {
 	l.mu.RLock()
-	defer l.mu.Unlock()
+	defer l.mu.RUnlock()
 	return l.list.Get(index)
 }
 
@@ -105,12 +104,6 @@ func (l *SyncArrayList[E]) Contains(matcher func(value E) bool) bool {
 	return l.list.Contains(matcher)
 }
 
-func (l *SyncArrayList[E]) ContainsAny(matcher func(value E) bool) bool {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	return l.list.ContainsAny(matcher)
-}
-
 func (l *SyncArrayList[E]) IndexOf(matcher func(value E) bool) int {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -125,14 +118,14 @@ func (l *SyncArrayList[E]) LastIndexOf(matcher func(value E) bool) int {
 
 func (l *SyncArrayList[E]) SubList(from, to int) List[E] {
 	l.mu.RLock()
-	defer l.mu.Unlock()
+	defer l.mu.RUnlock()
 	syncList := NewSyncArrayList[E]()
 	list := l.list.SubArrayList(from, to)
 	syncList.list = *list
 	return syncList
 }
 
-func (l *SyncArrayList[E]) SubArrayList(from, to int) *SyncArrayList[E] {
+func (l *SyncArrayList[E]) SubSyncArrayList(from, to int) *SyncArrayList[E] {
 	return l.SubList(from, to).(*SyncArrayList[E])
 }
 
