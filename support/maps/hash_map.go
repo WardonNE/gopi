@@ -3,8 +3,6 @@ package maps
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/wardonne/gopi/support/builder"
 )
 
 type HashMap[K comparable, V any] struct {
@@ -18,7 +16,11 @@ func NewHashMap[K comparable, V any]() *HashMap[K, V] {
 }
 
 func (m *HashMap[K, V]) MarshalJSON() ([]byte, error) {
-	return json.Marshal(m.items)
+	mm := make(map[K]V, 0)
+	for _, item := range m.items {
+		mm[item.Key] = item.Value
+	}
+	return json.Marshal(mm)
 }
 
 func (m *HashMap[K, V]) UnmarshalJSON(data []byte) error {
@@ -47,18 +49,7 @@ func (m *HashMap[K, V]) FromMap(values map[K]V) {
 }
 
 func (m *HashMap[K, V]) String() string {
-	if bytes, err := m.MarshalJSON(); err != nil {
-		builder := builder.NewStringBuilder("{")
-		for _, value := range m.items {
-			builder.WriteString(fmt.Sprintf("%v: %v", value.Key, value.Value))
-			builder.WriteRune(' ')
-		}
-		builder.TrimSpace()
-		builder.WriteRune('}')
-		return builder.String()
-	} else {
-		return string(bytes)
-	}
+	return fmt.Sprintf("%v", m.ToMap())
 }
 
 func (m *HashMap[K, V]) Clone() Map[K, V] {
@@ -112,7 +103,7 @@ func (m *HashMap[K, V]) Keys() []K {
 }
 
 func (m *HashMap[K, V]) Values() []V {
-	values := make([]V, len(m.items))
+	values := make([]V, 0, len(m.items))
 	for _, item := range m.items {
 		values = append(values, item.Value)
 	}

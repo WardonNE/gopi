@@ -2,9 +2,9 @@ package maps
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
-	"github.com/wardonne/gopi/support/builder"
 	"github.com/wardonne/gopi/support/compare"
 	"github.com/wardonne/gopi/support/tree"
 )
@@ -17,6 +17,7 @@ type TreeMap[K comparable, V any] struct {
 func NewTreeMap[K comparable, V any](comparator compare.Comparator[K]) *TreeMap[K, V] {
 	t := new(TreeMap[K, V])
 	t.tree = tree.NewRBTree[K](comparator)
+	t.items = make(map[K]*Entry[K, V])
 	return t
 }
 
@@ -30,15 +31,7 @@ func (t *TreeMap[K, V]) MarshalJSON() ([]byte, error) {
 }
 
 func (t *TreeMap[K, V]) UnmarshalJSON(data []byte) error {
-	items := make(map[K]V)
-	if err := json.Unmarshal(data, &t.items); err != nil {
-		return err
-	}
-	for key, value := range items {
-		t.tree.Add(key)
-		t.items[key] = &Entry[K, V]{key, value}
-	}
-	return nil
+	return errors.New("not implements")
 }
 
 func (t *TreeMap[K, V]) ToMap() map[K]V {
@@ -51,33 +44,25 @@ func (t *TreeMap[K, V]) ToMap() map[K]V {
 }
 
 func (t *TreeMap[K, V]) FromMap(values map[K]V) {
-	for key, value := range values {
-		t.tree.Add(key)
-		t.items[key] = &Entry[K, V]{key, value}
-	}
+	panic(errors.New("not implements"))
 }
 
 func (t *TreeMap[K, V]) String() string {
-	if bytes, err := t.MarshalJSON(); err != nil {
-		values := t.ToMap()
-		builder := builder.NewStringBuilder('{')
-		for key, value := range values {
-			builder.WriteString(fmt.Sprintf("%v", key))
-			builder.WriteString(":")
-			builder.WriteString(fmt.Sprintf("%v", value))
-			builder.WriteRune(' ')
-		}
-		builder.TrimSpace()
-		return builder.String()
-	} else {
-		return string(bytes)
-	}
+	m := map[K]V{}
+	t.tree.Range(func(value K) bool {
+		m[value] = t.items[value].Value
+		return true
+	})
+	return fmt.Sprintf("%v", m)
 }
 
 func (t *TreeMap[K, V]) Clone() Map[K, V] {
-	tree := NewTreeMap[K, V](t.tree.Comparator())
-	tree.FromMap(t.ToMap())
-	return tree
+	m := NewTreeMap[K, V](t.tree.Comparator())
+	keys := t.tree.ToArray()
+	for _, key := range keys {
+		m.Set(key, t.items[key].Value)
+	}
+	return m
 }
 
 func (t *TreeMap[K, V]) Get(key K) (value V) {
@@ -139,11 +124,11 @@ func (t *TreeMap[K, V]) Clear() {
 
 func (t *TreeMap[K, V]) ContainsValue(matcher func(value V) bool) bool {
 	for _, entry := range t.items {
-		if !matcher(entry.Value) {
-			return false
+		if matcher(entry.Value) {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func (t *TreeMap[K, V]) ContainsKey(key K) bool {

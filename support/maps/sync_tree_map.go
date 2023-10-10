@@ -1,19 +1,19 @@
 package maps
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/wardonne/gopi/support/compare"
 )
 
 type SyncTreeMap[K comparable, V any] struct {
-	mu    *sync.RWMutex
+	mu    sync.RWMutex
 	items *TreeMap[K, V]
 }
 
 func NewSyncTreeMap[K comparable, V any](comparator compare.Comparator[K]) *SyncTreeMap[K, V] {
 	t := new(SyncTreeMap[K, V])
-	t.mu = new(sync.RWMutex)
 	t.items = NewTreeMap[K, V](comparator)
 	return t
 }
@@ -25,9 +25,7 @@ func (t *SyncTreeMap[K, V]) MarshalJSON() ([]byte, error) {
 }
 
 func (t *SyncTreeMap[K, V]) UnmarshalJSON(data []byte) error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	return t.items.UnmarshalJSON(data)
+	return errors.New("not implements")
 }
 
 func (t *SyncTreeMap[K, V]) ToMap() map[K]V {
@@ -37,9 +35,7 @@ func (t *SyncTreeMap[K, V]) ToMap() map[K]V {
 }
 
 func (t *SyncTreeMap[K, V]) FromMap(values map[K]V) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	t.items.FromMap(values)
+	panic(errors.New("not implements"))
 }
 
 func (t *SyncTreeMap[K, V]) String() string {
@@ -51,9 +47,9 @@ func (t *SyncTreeMap[K, V]) String() string {
 func (t *SyncTreeMap[K, V]) Clone() Map[K, V] {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	tree := NewSyncTreeMap[K, V](t.items.Comparator())
-	tree.FromMap(t.items.ToMap())
-	return tree
+	m := NewSyncTreeMap[K, V](t.items.Comparator())
+	m.items = t.items.Clone().(*TreeMap[K, V])
+	return m
 }
 
 func (t *SyncTreeMap[K, V]) Copy() *SyncTreeMap[K, V] {
