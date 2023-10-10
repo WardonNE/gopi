@@ -11,10 +11,10 @@ type SyncHashSet[E comparable] struct {
 	set HashSet[E]
 }
 
-func NewSyncHashSet[E comparable]() *SyncHashSet[E] {
+func NewSyncHashSet[E comparable](values ...E) *SyncHashSet[E] {
 	hashSet := new(SyncHashSet[E])
 	hashSet.mu = new(sync.RWMutex)
-	hashSet.set = *NewHashSet[E]()
+	hashSet.set = *NewHashSet[E](values...)
 	return hashSet
 }
 
@@ -83,12 +83,6 @@ func (s *SyncHashSet[E]) Contains(matcher func(value E) bool) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.set.Contains(matcher)
-}
-
-func (s *SyncHashSet[E]) ContainsAny(matcher func(value E) bool) bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.set.ContainsAny(matcher)
 }
 
 func (s *SyncHashSet[E]) Add(value E) {

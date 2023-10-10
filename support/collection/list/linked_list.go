@@ -25,9 +25,13 @@ func NewLinkedList[E any](values ...E) *LinkedList[E] {
 func (l *LinkedList[E]) remove(el *element[E]) {
 	if el.prev != nil {
 		el.prev.next = el.next
+	} else {
+		l.first = el.next
 	}
 	if el.next != nil {
 		el.next.prev = el.prev
+	} else {
+		l.last = el.prev
 	}
 	el.next = nil
 	el.prev = nil
@@ -169,7 +173,7 @@ func (l *LinkedList[E]) LastIndexOf(matcher func(value E) bool) int {
 	if l.size == 0 {
 		return -1
 	}
-	for el, index := l.last, l.size-1; el.prev != nil; el, index = el.prev, index-1 {
+	for el, index := l.last, l.size-1; el != nil; el, index = el.prev, index-1 {
 		if matcher(el.Value) {
 			return index
 		}
@@ -258,7 +262,11 @@ func (l *LinkedList[E]) InsertBefore(index int, value E) {
 	at := l.node(index)
 	el.next = at
 	el.prev = at.prev
-	at.prev.next = el
+	if at.prev != nil {
+		at.prev.next = el
+	} else {
+		l.first = el
+	}
 	at.prev = el
 	l.size++
 }
@@ -271,7 +279,11 @@ func (l *LinkedList[E]) InsertAfter(index int, value E) {
 	at := l.node(index)
 	el.prev = at
 	el.next = at.next
-	at.next.prev = el
+	if at.next != nil {
+		at.next.prev = el
+	} else {
+		l.last = el
+	}
 	at.next = el
 	l.size++
 }
@@ -292,7 +304,7 @@ func (l *LinkedList[E]) Remove(matcher func(value E) bool) {
 		return
 	}
 	els := make([]*element[E], 0)
-	for el := l.first; el.next != nil; el = el.next {
+	for el := l.first; el != nil; el = el.next {
 		if matcher(el.Value) {
 			els = append(els, el)
 		}

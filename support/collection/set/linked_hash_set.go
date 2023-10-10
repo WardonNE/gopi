@@ -12,10 +12,13 @@ type LinkedHashSet[E comparable] struct {
 	list *list.LinkedList[E]
 }
 
-func NewLinkedHashSet[E comparable]() *LinkedHashSet[E] {
+func NewLinkedHashSet[E comparable](values ...E) *LinkedHashSet[E] {
 	hashSet := new(LinkedHashSet[E])
 	hashSet.set = NewHashSet[E]()
 	hashSet.list = list.NewLinkedList[E]()
+	for _, value := range values {
+		hashSet.Add(value)
+	}
 	return hashSet
 }
 
@@ -84,7 +87,10 @@ func (s *LinkedHashSet[E]) Get(index int) E {
 	return s.list.Get(index)
 }
 
-func (s *LinkedHashSet[E]) Pop() E {
+func (s *LinkedHashSet[E]) Pop() (value E) {
+	if s.list.IsEmpty() {
+		return
+	}
 	el := s.list.Pop()
 	s.set.Remove(func(value E) bool {
 		return value == el
@@ -110,10 +116,6 @@ func (s *LinkedHashSet[E]) LastIndexOf(matcher func(value E) bool) int {
 
 func (s *LinkedHashSet[E]) Contains(matcher func(value E) bool) bool {
 	return s.set.Contains(matcher)
-}
-
-func (s *LinkedHashSet[E]) ContainsAny(matcher func(value E) bool) bool {
-	return s.set.ContainsAny(matcher)
 }
 
 func (s *LinkedHashSet[E]) Add(value E) {

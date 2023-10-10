@@ -7,14 +7,13 @@ import (
 )
 
 type SyncLinkedHashSet[E comparable] struct {
-	mu  *sync.RWMutex
+	mu  sync.RWMutex
 	set *LinkedHashSet[E]
 }
 
-func NewSyncLinkedHashSet[E comparable]() *SyncLinkedHashSet[E] {
+func NewSyncLinkedHashSet[E comparable](values ...E) *SyncLinkedHashSet[E] {
 	hashSet := new(SyncLinkedHashSet[E])
-	hashSet.mu = new(sync.RWMutex)
-	hashSet.set = NewLinkedHashSet[E]()
+	hashSet.set = NewLinkedHashSet[E](values...)
 	return hashSet
 }
 
@@ -52,11 +51,7 @@ func (s *SyncLinkedHashSet[E]) Clone() collection.Collection[E] {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	hashSet := NewSyncLinkedHashSet[E]()
-	hashSet.set.list.Range(func(value E) bool {
-		hashSet.set.set.items[value] = struct{}{}
-		hashSet.set.list.Add(value)
-		return true
-	})
+	hashSet.set = s.set.Copy()
 	return hashSet
 }
 
@@ -116,12 +111,6 @@ func (s *SyncLinkedHashSet[E]) Contains(matcher func(value E) bool) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.set.Contains(matcher)
-}
-
-func (s *SyncLinkedHashSet[E]) ContainsAny(matcher func(value E) bool) bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.set.ContainsAny(matcher)
 }
 
 func (s *SyncLinkedHashSet[E]) Add(value E) {

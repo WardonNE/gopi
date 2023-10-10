@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/wardonne/gopi/support/builder"
 	"github.com/wardonne/gopi/support/collection"
 )
 
@@ -12,9 +11,10 @@ type HashSet[E comparable] struct {
 	items map[E]struct{}
 }
 
-func NewHashSet[E comparable]() *HashSet[E] {
+func NewHashSet[E comparable](values ...E) *HashSet[E] {
 	hashSet := new(HashSet[E])
 	hashSet.items = make(map[E]struct{})
+	hashSet.FromArray(values)
 	return hashSet
 }
 
@@ -32,7 +32,7 @@ func (s *HashSet[E]) UnmarshalJSON(data []byte) error {
 }
 
 func (s *HashSet[E]) ToArray() []E {
-	values := make([]E, len(s.items))
+	values := make([]E, 0, len(s.items))
 	for value := range s.items {
 		values = append(values, value)
 	}
@@ -48,18 +48,7 @@ func (s *HashSet[E]) FromArray(values []E) {
 }
 
 func (s *HashSet[E]) String() string {
-	if bytes, err := s.MarshalJSON(); err != nil {
-		builder := builder.NewStringBuilder("[")
-		for value := range s.items {
-			builder.WriteString(fmt.Sprintf("%v", value))
-			builder.WriteRune(' ')
-		}
-		builder.TrimSpace()
-		builder.WriteString("]")
-		return builder.String()
-	} else {
-		return string(bytes)
-	}
+	return fmt.Sprintf("%v", s.ToArray())
 }
 
 func (s *HashSet[E]) Clone() collection.Collection[E] {
@@ -85,15 +74,6 @@ func (s *HashSet[E]) IsNotEmpty() bool {
 }
 
 func (s *HashSet[E]) Contains(matcher func(value E) bool) bool {
-	for value := range s.items {
-		if !matcher(value) {
-			return false
-		}
-	}
-	return true
-}
-
-func (s *HashSet[E]) ContainsAny(matcher func(value E) bool) bool {
 	for value := range s.items {
 		if matcher(value) {
 			return true
