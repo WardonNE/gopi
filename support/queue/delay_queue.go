@@ -8,44 +8,44 @@ import (
 	"github.com/wardonne/gopi/support/serializer"
 )
 
-type Delayer[E any] interface {
+type Delayed[T any] interface {
 	serializer.JSONSerializer
 
 	Expire() time.Time
-	Value() E
+	Value() T
 }
 
-type DelayQueueEntry[E any] struct {
+type DelayQueueEntry[T any] struct {
 	expire time.Time
-	value  E
+	value  T
 }
 
-func NewDelayEntry[E any](value E, expire time.Time) *DelayQueueEntry[E] {
-	return &DelayQueueEntry[E]{
-		expire: expire,
+func NewDelayEntry[T any](value T, delay time.Duration) *DelayQueueEntry[T] {
+	return &DelayQueueEntry[T]{
+		expire: time.Now().Add(delay),
 		value:  value,
 	}
 }
 
-func (e *DelayQueueEntry[E]) Expire() time.Time {
+func (e *DelayQueueEntry[T]) Expire() time.Time {
 	return e.expire
 }
 
-func (e *DelayQueueEntry[E]) Value() E {
+func (e *DelayQueueEntry[T]) Value() T {
 	return e.value
 }
 
-func (e *DelayQueueEntry[E]) MarshalJSON() ([]byte, error) {
+func (e *DelayQueueEntry[T]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]any{
-		"expire": e.expire.Format("2006-01-02 15:04:05"),
+		"expire": e.expire.String(),
 		"value":  e.value,
 	})
 }
 
-func (e *DelayQueueEntry[E]) UnmarshalJSON(data []byte) error {
+func (e *DelayQueueEntry[T]) UnmarshalJSON(data []byte) error {
 	var item struct {
 		Expire time.Time `json:"expire"`
-		Value  E         `json:"value"`
+		Value  T         `json:"value"`
 	}
 	if err := json.Unmarshal(data, &item); err != nil {
 		return err
@@ -55,21 +55,21 @@ func (e *DelayQueueEntry[E]) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type DelayQueue[T any, E Delayer[T]] struct {
-	queue    *PriorityQueue[E]
+type DelayQueue[T any] struct {
+	queue    *PriorityQueue[Delayed[T]]
 	lock     *sync.Mutex
 	takeLock *sync.Cond
 }
 
-func NewDelayQueue[T any, E Delayer[T]]() *DelayQueue[T, E] {
-	q := new(DelayQueue[T, E])
-	q.queue = NewPriorityQueue[E](q)
+func NewDelayQueue[T any]() *DelayQueue[T] {
+	q := new(DelayQueue[T])
+	q.queue = NewPriorityQueue[Delayed[T]](q)
 	q.lock = new(sync.Mutex)
 	q.takeLock = sync.NewCond(q.lock)
 	return q
 }
 
-func (e *DelayQueue[T, E]) Compare(a, b E) int {
+func (e *DelayQueue[T]) Compare(a, b Delayed[T]) int {
 	expireA := a.Expire()
 	expireB := b.Expire()
 	if expireA.Before(expireB) {
@@ -81,61 +81,61 @@ func (e *DelayQueue[T, E]) Compare(a, b E) int {
 	}
 }
 
-func (q *DelayQueue[T, E]) MarshalJSON() ([]byte, error) {
+func (q *DelayQueue[T]) MarshalJSON() ([]byte, error) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return json.Marshal(q.queue)
 }
 
-func (q *DelayQueue[T, E]) UnmarshalJSON(data []byte) error {
+func (q *DelayQueue[T]) UnmarshalJSON(data []byte) error {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return q.queue.UnmarshalJSON(data)
 }
 
-func (q *DelayQueue[T, E]) ToArray() []E {
+func (q *DelayQueue[T]) ToArray() []Delayed[T] {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return q.queue.ToArray()
 }
 
-func (q *DelayQueue[T, E]) FromArray(values []E) {
+func (q *DelayQueue[T]) FromArray(values []Delayed[T]) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	q.queue.FromArray(values)
 }
 
-func (q *DelayQueue[T, E]) Count() int {
+func (q *DelayQueue[T]) Count() int {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return q.queue.Count()
 }
 
-func (q *DelayQueue[T, E]) IsEmpty() bool {
+func (q *DelayQueue[T]) IsEmpty() bool {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return q.queue.IsEmpty()
 }
 
-func (q *DelayQueue[T, E]) IsNotEmpty() bool {
+func (q *DelayQueue[T]) IsNotEmpty() bool {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return q.queue.IsNotEmpty()
 }
 
-func (q *DelayQueue[T, E]) Clear() {
+func (q *DelayQueue[T]) Clear() {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	q.queue.Clear()
 }
 
-func (q *DelayQueue[T, E]) Peek() E {
+func (q *DelayQueue[T]) Peek() Delayed[T] {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return q.queue.Peek()
 }
 
-func (q *DelayQueue[T, E]) Enqueue(value E) (ok bool) {
+func (q *DelayQueue[T]) Enqueue(value Delayed[T]) (ok bool) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	ok = q.queue.Enqueue(value)
@@ -143,7 +143,7 @@ func (q *DelayQueue[T, E]) Enqueue(value E) (ok bool) {
 	return
 }
 
-func (q *DelayQueue[T, E]) Dequeue() (value E, ok bool) {
+func (q *DelayQueue[T]) Dequeue() (value Delayed[T], ok bool) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	if q.queue.IsEmpty() {
@@ -155,11 +155,11 @@ func (q *DelayQueue[T, E]) Dequeue() (value E, ok bool) {
 	return q.queue.Dequeue()
 }
 
-func (q *DelayQueue[T, E]) EnqueueWithBlock(value E) bool {
+func (q *DelayQueue[T]) EnqueueWithBlock(value Delayed[T]) bool {
 	return q.Enqueue(value)
 }
 
-func (q *DelayQueue[T, E]) DequeueWithBlock() (value E, ok bool) {
+func (q *DelayQueue[T]) DequeueWithBlock() (value Delayed[T], ok bool) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	for q.queue.IsEmpty() {
@@ -167,26 +167,35 @@ func (q *DelayQueue[T, E]) DequeueWithBlock() (value E, ok bool) {
 	}
 	first := q.queue.Peek()
 	timer := time.NewTimer(time.Until(first.Expire()))
+	defer timer.Stop()
 	<-timer.C
 	value, ok = q.queue.Dequeue()
 	return
 }
 
-func (q *DelayQueue[T, E]) EnqueueWithTimeout(value E, duration time.Duration) bool {
+func (q *DelayQueue[T]) EnqueueWithTimeout(value Delayed[T], duration time.Duration) bool {
 	return q.Enqueue(value)
 }
 
-func (q *DelayQueue[T, E]) DequeueWithTimeout(duration time.Duration) (value E, ok bool) {
+func (q *DelayQueue[T]) DequeueWithTimeout(duration time.Duration) (value Delayed[T], ok bool) {
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
-		value, ok = q.DequeueWithBlock()
-		done <- struct{}{}
+		q.lock.Lock()
+		defer q.lock.Unlock()
+		for q.queue.IsEmpty() {
+			q.takeLock.Wait()
+		}
+		first := q.queue.Peek()
+		timer := time.NewTimer(time.Until(first.Expire()))
+		defer timer.Stop()
+		<-timer.C
+		close(done)
 	}()
 	select {
 	case <-timeout:
 		return
 	case <-done:
-		return
+		return q.queue.Dequeue()
 	}
 }

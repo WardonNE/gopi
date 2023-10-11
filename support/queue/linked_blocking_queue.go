@@ -103,6 +103,7 @@ func (q *LinkedBlockingQueue[E]) Enqueue(value E) bool {
 		return false
 	}
 	q.items.Push(value)
+	q.takeLock.Broadcast()
 	return true
 }
 
@@ -112,7 +113,9 @@ func (q *LinkedBlockingQueue[E]) Dequeue() (value E, ok bool) {
 	if q.items.IsEmpty() {
 		return
 	}
-	return q.items.Shift(), true
+	value, ok = q.items.Shift(), true
+	q.putLock.Broadcast()
+	return
 }
 
 func (q *LinkedBlockingQueue[E]) EnqueueWithBlock(value E) bool {
@@ -141,6 +144,8 @@ func (q *LinkedBlockingQueue[E]) EnqueueWithTimeout(value E, duration time.Durat
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
+		q.lock.Lock()
+		defer q.lock.Unlock()
 		for q.cap == q.items.Count() {
 			q.putLock.Wait()
 		}
@@ -160,9 +165,12 @@ func (q *LinkedBlockingQueue[E]) DequeueWithTimeout(duration time.Duration) (val
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
+		q.lock.Lock()
+		defer q.lock.Unlock()
 		for q.items.IsEmpty() {
 			q.takeLock.Wait()
 		}
+		close(done)
 	}()
 	select {
 	case <-done:

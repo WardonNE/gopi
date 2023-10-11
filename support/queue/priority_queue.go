@@ -26,7 +26,15 @@ func (q *PriorityQueue[E]) MarshalJSON() ([]byte, error) {
 }
 
 func (q *PriorityQueue[E]) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &q.items)
+	items := []E{}
+	err := json.Unmarshal(data, &items)
+	if err != nil {
+		return nil
+	}
+	for _, item := range items {
+		q.Enqueue(item)
+	}
+	return nil
 }
 
 func (q *PriorityQueue[E]) ToArray() []E {
@@ -34,7 +42,9 @@ func (q *PriorityQueue[E]) ToArray() []E {
 }
 
 func (q *PriorityQueue[E]) FromArray(values []E) {
-	q.items = values
+	for _, value := range values {
+		q.Enqueue(value)
+	}
 }
 
 func (q *PriorityQueue[E]) Count() int {

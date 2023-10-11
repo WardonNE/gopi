@@ -25,7 +25,7 @@ func NewArrayBlockingQueue[E any](cap int) *ArrayBlockingQueue[E] {
 	queue.items = list.NewArrayList[E](make([]E, cap)...)
 	queue.size = 0
 	queue.cap = cap
-	queue.enqueueIndex = queue.size
+	queue.enqueueIndex = 0
 	queue.dequeueIndex = 0
 	queue.takeLock = sync.NewCond(queue.lock)
 	queue.putLock = sync.NewCond(queue.lock)
@@ -44,9 +44,18 @@ func (q *ArrayBlockingQueue[E]) moveIndex(index int) int {
 func (q *ArrayBlockingQueue[E]) MarshalJSON() ([]byte, error) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
-	values := make([]E, 0, q.dequeueIndex-q.enqueueIndex)
-	for index := q.dequeueIndex; index < q.enqueueIndex; index++ {
-		values = append(values, q.items.Get(index))
+	values := make([]E, 0)
+	if q.enqueueIndex > q.dequeueIndex {
+		for index := q.dequeueIndex; index < q.enqueueIndex; index++ {
+			values = append(values, q.items.Get(index))
+		}
+	} else {
+		for index := q.dequeueIndex; index < q.cap; index++ {
+			values = append(values, q.items.Get(index))
+		}
+		for index := 0; index < q.enqueueIndex; index++ {
+			values = append(values, q.items.Get(index))
+		}
 	}
 	return json.Marshal(values)
 }
@@ -73,7 +82,20 @@ func (q *ArrayBlockingQueue[E]) UnmarshalJSON(data []byte) error {
 func (q *ArrayBlockingQueue[E]) ToArray() []E {
 	q.lock.Lock()
 	defer q.lock.Unlock()
-	return q.items.ToArray()
+	values := []E{}
+	if q.enqueueIndex > q.dequeueIndex {
+		for index := q.dequeueIndex; index < q.enqueueIndex; index++ {
+			values = append(values, q.items.Get(index))
+		}
+	} else {
+		for index := q.dequeueIndex; index < q.cap; index++ {
+			values = append(values, q.items.Get(index))
+		}
+		for index := 0; index < q.enqueueIndex; index++ {
+			values = append(values, q.items.Get(index))
+		}
+	}
+	return values
 }
 
 func (q *ArrayBlockingQueue[E]) FromArray(values []E) {
@@ -135,6 +157,7 @@ func (q *ArrayBlockingQueue[E]) Enqueue(value E) bool {
 	q.items.Set(q.enqueueIndex, value)
 	q.size++
 	q.enqueueIndex = q.moveIndex(q.enqueueIndex)
+	q.takeLock.Broadcast()
 	return true
 }
 
@@ -144,7 +167,13 @@ func (q *ArrayBlockingQueue[E]) Dequeue() (value E, ok bool) {
 	if q.size == 0 {
 		return
 	}
-	return q.items.Shift(), true
+	value, ok = q.items.Get(q.dequeueIndex), true
+	var zero E
+	q.items.Set(q.dequeueIndex, zero)
+	q.dequeueIndex = q.moveIndex(q.dequeueIndex)
+	q.size--
+	q.putLock.Broadcast()
+	return
 }
 
 func (q *ArrayBlockingQueue[E]) EnqueueWithBlock(value E) bool {
@@ -204,7 +233,7 @@ func (q *ArrayBlockingQueue[E]) DequeueWithTimeout(duration time.Duration) (valu
 	go func() {
 		q.lock.Lock()
 		defer q.lock.Unlock()
-		for q.cap == q.size {
+		for q.size == 0 {
 			q.takeLock.Wait()
 		}
 		close(done)

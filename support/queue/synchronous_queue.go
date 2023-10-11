@@ -30,7 +30,6 @@ func (q *SynchronousQueue[E]) ToArray() []E {
 }
 
 func (q *SynchronousQueue[E]) FromArray(values []E) {
-	return
 }
 
 func (q *SynchronousQueue[E]) Count() int {
@@ -46,7 +45,6 @@ func (q *SynchronousQueue[E]) IsNotEmpty() bool {
 }
 
 func (q *SynchronousQueue[E]) Clear() {
-	return
 }
 
 func (q *SynchronousQueue[E]) Peek() (value E) {
@@ -86,7 +84,7 @@ func (q *SynchronousQueue[E]) DequeueWithTimeout(duration time.Duration) (value 
 	select {
 	case <-timeout:
 		return
-	case <-q.channel:
-		return
+	case value = <-q.channel:
+		return value, true
 	}
 }

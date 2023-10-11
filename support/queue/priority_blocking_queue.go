@@ -101,7 +101,9 @@ func (q *PriorityBlockingQueue[E]) Enqueue(value E) bool {
 	if q.cap == q.queue.size {
 		return false
 	}
-	return q.queue.Enqueue(value)
+	ok := q.queue.Enqueue(value)
+	q.takeLock.Broadcast()
+	return ok
 }
 
 func (q *PriorityBlockingQueue[E]) Dequeue() (value E, ok bool) {
@@ -110,7 +112,9 @@ func (q *PriorityBlockingQueue[E]) Dequeue() (value E, ok bool) {
 	if q.queue.IsEmpty() {
 		return
 	}
-	return q.queue.Dequeue()
+	value, ok = q.queue.Dequeue()
+	q.putLock.Broadcast()
+	return
 }
 
 func (q *PriorityBlockingQueue[E]) EnqueueWithBlock(value E) (ok bool) {
@@ -139,6 +143,8 @@ func (q *PriorityBlockingQueue[E]) EnqueueWithTimeout(value E, duration time.Dur
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
+		q.lock.Lock()
+		defer q.lock.Unlock()
 		for q.cap == q.queue.Count() {
 			q.putLock.Wait()
 		}
@@ -158,6 +164,8 @@ func (q *PriorityBlockingQueue[E]) DequeueWithTimeout(duration time.Duration) (v
 	timeout := time.After(duration)
 	done := make(chan struct{})
 	go func() {
+		q.lock.Lock()
+		defer q.lock.Unlock()
 		for q.queue.IsEmpty() {
 			q.takeLock.Wait()
 		}
