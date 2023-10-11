@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/wardonne/gopi/support/builder"
 	"github.com/wardonne/gopi/support/compare"
 )
 
@@ -36,6 +35,7 @@ func (t *AVLTree[E]) UnmarshalJSON(data []byte) error {
 func (t *AVLTree[E]) ToArray() []E {
 	nodes := t.root.inOrderRange()
 	values := make([]E, 0, len(nodes))
+	fmt.Println(len(nodes))
 	for _, node := range nodes {
 		values = append(values, node.value)
 	}
@@ -43,22 +43,12 @@ func (t *AVLTree[E]) ToArray() []E {
 }
 
 func (t *AVLTree[E]) FromArray(values []E) {
+	t.Clear()
 	t.AddAll(values...)
 }
 
 func (t *AVLTree[E]) String() string {
-	if bytes, err := t.MarshalJSON(); err != nil {
-		builder := builder.NewStringBuilder('{')
-		values := t.ToArray()
-		for _, value := range values {
-			builder.WriteString(fmt.Sprintf("%v", value))
-			builder.WriteRune(' ')
-		}
-		builder.TrimSpace()
-		return builder.String()
-	} else {
-		return string(bytes)
-	}
+	return fmt.Sprintf("%v", t.ToArray())
 }
 
 func (t *AVLTree[E]) Clone() Tree[E] {

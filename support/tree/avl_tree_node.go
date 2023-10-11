@@ -169,7 +169,7 @@ func (node *AVLTreeNode[E]) remove(value E, comparator compare.Comparator[E]) *A
 			node.value = node.right.value
 			node.count = node.right.count
 			node.height = 1
-			node.left = nil
+			node.right = nil
 		}
 		return node
 	}

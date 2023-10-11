@@ -130,7 +130,7 @@ func (node *RBTreeNode[E]) remove(value E, comparator compare.Comparator[E]) *RB
 			activeNode = activeNode.moveRedRight()
 		}
 		if comparator.Compare(value, activeNode.value) == 0 {
-			min := activeNode.min()
+			min := activeNode.right.min()
 			activeNode.value = min.value
 			activeNode.count = min.count
 			activeNode.right = activeNode.right.removeMin()
