@@ -213,7 +213,6 @@ func TestLinkedList_RemoveAt(t *testing.T) {
 func TestLinkedList_Remove(t *testing.T) {
 	list := NewLinkedList[int](1, 2, 3, 4, 5)
 	list.Remove(func(value int) bool {
-		fmt.Println(value)
 		return value == 2 || value == 3
 	})
 	assert.Equal(t, NewLinkedList[int](1, 4, 5).ToArray(), list.ToArray())

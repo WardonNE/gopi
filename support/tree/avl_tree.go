@@ -35,7 +35,6 @@ func (t *AVLTree[E]) UnmarshalJSON(data []byte) error {
 func (t *AVLTree[E]) ToArray() []E {
 	nodes := t.root.inOrderRange()
 	values := make([]E, 0, len(nodes))
-	fmt.Println(len(nodes))
 	for _, node := range nodes {
 		values = append(values, node.value)
 	}
