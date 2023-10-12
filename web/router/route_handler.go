@@ -42,12 +42,11 @@ func (route *RouteHandler) Handler() string {
 
 func (route *RouteHandler) HandleRequest(request *context.Request) context.IResponse {
 	pl := new(pipeline.Pipeline[*context.Request, context.IResponse])
-	pipes := make([]pipeline.IPipe[*context.Request, context.IResponse], 0, route.middlewares.Count())
+	pl = pl.Send(request)
 	route.middlewares.Range(func(middleware middleware.IMiddleware) bool {
-		pipes = append(pipes, pipeline.AsPipe[*context.Request, context.IResponse](middleware))
+		pl.AppendThroughCallback(middleware)
 		return true
 	})
-	pl = pl.Send(request).Through(pipes...)
 	if route.HasValidation() {
 		pl = pl.AppendThrough(route.validation)
 	}

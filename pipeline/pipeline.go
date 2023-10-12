@@ -20,8 +20,21 @@ func (p *Pipeline[P, R]) Through(pipes ...IPipe[P, R]) *Pipeline[P, R] {
 	return p
 }
 
+func (p *Pipeline[P, R]) ThroughCallbacks(callbacks ...Handler[P, R]) *Pipeline[P, R] {
+	p.pipes = make([]IPipe[P, R], 0, len(callbacks))
+	for _, callback := range callbacks {
+		p.pipes = append(p.pipes, AsPipe[P, R](callback))
+	}
+	return p
+}
+
 func (p *Pipeline[P, R]) AppendThrough(pipe IPipe[P, R]) *Pipeline[P, R] {
 	p.pipes = append(p.pipes, pipe)
+	return p
+}
+
+func (p *Pipeline[P, R]) AppendThroughCallback(callback Handler[P, R]) *Pipeline[P, R] {
+	p.pipes = append(p.pipes, AsPipe[P, R](callback))
 	return p
 }
 
