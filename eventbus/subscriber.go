@@ -29,6 +29,6 @@ package eventbus
 //  }
 //
 type Subscriber interface {
-	// Subscribe accepts an instance of IEventBus and returns listener map
-	Subscribe(eb EventBusInterface) map[string][]ListenerClause
+	// Subscribe returns listener map
+	Subscribe() map[string][]ListenerClause
 }

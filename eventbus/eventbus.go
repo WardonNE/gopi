@@ -59,7 +59,8 @@ type EventBus struct {
 // NewEventBus creates a new [EventBus] instance
 func NewEventBus() *EventBus {
 	return &EventBus{
-		events: maps.NewSyncHashMap[string, EventInterface](),
+		events:    maps.NewSyncHashMap[string, EventInterface](),
+		listeners: maps.NewSyncHashMap[string, *list.ArrayList[Listener]](),
 	}
 }
 
@@ -167,7 +168,12 @@ func (eb *EventBus) ListenTopic(topic string, listeners []Listener) error {
 
 // Subscribe implements [IEventBus].Subscribe
 func (eb *EventBus) Subscribe(subscriber Subscriber) error {
-	listenerMap := subscriber.Subscribe(eb)
+	listenerMap := subscriber.Subscribe()
+	for topic := range listenerMap {
+		if !eb.events.ContainsKey(topic) {
+			return fmt.Errorf("Topic not found")
+		}
+	}
 	for topic, listenerClauses := range listenerMap {
 		if err := eb.OnTopic(topic, listenerClauses); err != nil {
 			return err
