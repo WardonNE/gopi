@@ -20,31 +20,28 @@ func NewLazyPaginator[T any](totalLoader func() int64, itemsLoader func() []T, p
 	paginator.loader = func() {
 		paginator.total = totalLoader()
 		paginator.items = itemsLoader()
+		paginator.lastPage = int(paginator.total/int64(pageSize)) + 1
 	}
 	paginator.once = new(sync.Once)
 	return paginator
 }
 
-func (p *LazyPaginator[T]) Load() {
+func (p *LazyPaginator[T]) load() {
 	p.once.Do(p.loader)
 }
 
 func (p *LazyPaginator[T]) Items() []T {
-	p.Load()
+	p.load()
 	return p.Paginator.Items()
 }
 
-func (p *LazyPaginator[T]) FirstItem() int {
-	return (p.CurrentPage()-1)*p.PageSize() + 1
-}
-
-func (p *LazyPaginator[T]) LastItem() int {
-	p.Load()
+func (p *LazyPaginator[T]) LastItemIndex() int {
+	p.load()
 	return p.Paginator.LastItem()
 }
 
 func (p *LazyPaginator[T]) Total() int64 {
-	p.Load()
+	p.load()
 	return p.Paginator.Total()
 }
 
@@ -61,7 +58,7 @@ func (p *LazyPaginator[T]) HasMore() bool {
 }
 
 func (p *LazyPaginator[T]) LastPage() int {
-	p.Load()
+	p.load()
 	return p.Paginator.LastPage()
 }
 
@@ -72,7 +69,7 @@ func (p *LazyPaginator[T]) ToMap() map[string]any {
 		"current_page": p.CurrentPage(),
 		"page_size":    p.PageSize(),
 		"last_page":    p.LastPage(),
-		"from":         p.FirstItem(),
-		"to":           p.LastItem(),
+		"from":         p.FirstItemIndex(),
+		"to":           p.LastItemIndex(),
 	}
 }

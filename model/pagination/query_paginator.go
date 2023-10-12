@@ -29,7 +29,7 @@ func (q *QueryPaginator[T]) fetchTotal() int64 {
 
 func (q *QueryPaginator[T]) fetchItems() []T {
 	var items []T
-	query := q.db.Session(new(gorm.Session)).Limit(q.PageSize()).Offset(q.FirstItem() - 1)
+	query := q.db.Session(new(gorm.Session)).Limit(q.PageSize()).Offset(q.FirstItemIndex() - 1)
 	if err := query.Find(&items).Error; err != nil {
 		panic(err)
 	}
