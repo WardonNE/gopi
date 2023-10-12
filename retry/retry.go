@@ -81,23 +81,22 @@ func DoWithConfigs(fn func() error, configs *RetryConfigs) error {
 }
 
 func (r *retryConfigs) Do(fn func() error) (err error) {
-	select {
-	case <-r.ctx.Done():
-		return r.ctx.Err()
-	default:
-		attempts := 0
-		for {
-			err = fn()
-			if !r.shouldRetry(err) {
-				return err
-			}
-			if r.attempts > 0 && attempts == int(r.attempts)-1 {
-				return err
-			}
-			attempts++
-			r.onRetry(attempts, err)
-			delay := utils.Min(r.delay+r.delayStep*time.Duration(attempts), r.maxDelay)
-			time.Sleep(delay)
+	attempts := 0
+	for {
+		err = fn()
+		if !r.shouldRetry(err) {
+			return err
+		}
+		if r.attempts > 0 && attempts == int(r.attempts)-1 {
+			return err
+		}
+		delay := utils.Min(r.delay+r.delayStep*time.Duration(attempts), r.maxDelay)
+		attempts++
+		r.onRetry(attempts, err)
+		select {
+		case <-r.ctx.Done():
+			return r.ctx.Err()
+		case <-time.After(delay):
 		}
 	}
 }

@@ -120,11 +120,11 @@ func TestEventBus(t *testing.T) {
 	assert.Equal(t, "Topic not found", eb.Subscribe(&errtestsubscriber{}).Error())
 
 	evt1 := &testevent1{Value: "testevent1"}
-	eb.Dispatch(evt1, nil)
+	assert.Nil(t, eb.Dispatch(evt1, nil))
 	assert.Equal(t, "testevent1listenerclausetestevent1listenertestsubscriber", evt1.Value)
 
 	evt2 := &testevent2{Value: "testevent2"}
-	eb.Dispatch(evt2, "initdata")
+	assert.Nil(t, eb.Dispatch(evt2, "initdata"))
 	assert.Equal(t, "testevent2listenerclauseinitdatatestsubscriber", evt2.Value)
 
 	assert.Equal(t, "Event not found", eb.Dispatch(&unregisteredevent{}, nil).Error())

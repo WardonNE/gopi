@@ -140,8 +140,8 @@ func (w *Worker) Stoppable() bool {
 }
 
 func (w *Worker) jobExecuteCtx() (context.Context, context.CancelFunc) {
-	if maxLeftTime := w.activeJob.MaxExecuteTimeTotal(); maxLeftTime != nil {
-		return context.WithTimeout(context.Background(), *maxLeftTime)
+	if maxLifeTime := w.activeJob.MaxExecuteTimeTotal(); maxLifeTime != nil {
+		return context.WithTimeout(context.Background(), *maxLifeTime)
 	} else if w.jobConfigs.maxExecuteTimeTotal > 0 {
 		return context.WithTimeout(context.Background(), w.jobConfigs.maxExecuteTimeTotal)
 	}
