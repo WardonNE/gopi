@@ -49,16 +49,11 @@ func JobRetryMaxDelay(maxDelay time.Duration) Option {
 
 // JobRetryDelayStep sets retry delay steps, default is 5s
 func JobRetryDelayStep(delayStep time.Duration) Option {
-	return func(wp *WorkerPool) {}
-}
-
-// JobMaxExecuteTimePreAttempt sets max execution time of every attempt, default is 10s
-func JobMaxExecuteTimePerAttempt(d time.Duration) Option {
 	return func(wp *WorkerPool) {
-		if d < 0 {
-			d = 0
+		if delayStep < 0 {
+			delayStep = 0
 		}
-		wp.jobConfigs.maxExecuteTimePerAttempt = d
+		wp.jobConfigs.retryDelayStep = delayStep
 	}
 }
 
@@ -68,7 +63,7 @@ func JobMaxExecuteTimeTotal(d time.Duration) Option {
 		if d < 0 {
 			d = 0
 		}
-		wp.jobConfigs.maxExecuteTimeTotal = d
+		wp.jobConfigs.maxExecuteTime = d
 	}
 }
 
@@ -103,7 +98,7 @@ func WorkerMaxStoppedTime(d time.Duration) Option {
 }
 
 // Subscriber adds a subscriber to queue events
-func Subscriber(subscriber subscriber.Subscriber) Option {
+func Subscriber(subscriber subscriber.SubscriberInterface) Option {
 	if subscriber == nil {
 		return noneOption
 	}

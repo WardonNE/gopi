@@ -9,12 +9,11 @@ import (
 var (
 	DefaultMaxWorkers = 3
 	// job configs
-	DefaultJobMaxAttempts              = 3
-	DefaultJobRetryDelay               = 5 * time.Second
-	DefaultJobRetryMaxDelay            = time.Minute
-	DefaultJobRetryDelayStep           = 5 * time.Second
-	DefaultJobMaxExecuteTimeTotal      = 5 * time.Minute
-	DefaultJobMaxExecuteTimePerAttempt = 10 * time.Second
+	DefaultJobMaxAttempts         = 3
+	DefaultJobRetryDelay          = 5 * time.Second
+	DefaultJobRetryMaxDelay       = time.Minute
+	DefaultJobRetryDelayStep      = 5 * time.Second
+	DefaultJobMaxExecuteTimeTotal = 10 * time.Minute
 	// worker configs
 	DefaultWorkerBatch          = 10
 	DefaultWorkerMaxIdleTime    = 2 * time.Minute
@@ -32,15 +31,14 @@ type WorkerPoolConfigs struct {
 	}
 	// Job configs
 	JobConfigs struct {
-		MaxAttempts              int
-		RetryDelay               time.Duration
-		RetryMaxDelay            time.Duration
-		RetryDelayStep           time.Duration
-		MaxExecuteTimePerAttempt time.Duration
-		MaxExecuteTimeTotal      time.Duration
+		MaxAttempts    int
+		RetryDelay     time.Duration
+		RetryMaxDelay  time.Duration
+		RetryDelayStep time.Duration
+		MaxExecuteTime time.Duration
 	}
 	// Subscriber
-	Subscriber subscriber.Subscriber
+	Subscriber subscriber.SubscriberInterface
 }
 
 // ToOptions converts the configurations to [Option]s
@@ -54,8 +52,7 @@ func (configs *WorkerPoolConfigs) ToOptions() []Option {
 		JobRetryDelay(configs.JobConfigs.RetryDelay),
 		JobRetryMaxDelay(configs.JobConfigs.RetryMaxDelay),
 		JobRetryDelayStep(configs.JobConfigs.RetryDelayStep),
-		JobMaxExecuteTimeTotal(configs.JobConfigs.MaxExecuteTimeTotal),
-		JobMaxExecuteTimePerAttempt(configs.JobConfigs.MaxExecuteTimePerAttempt),
+		JobMaxExecuteTimeTotal(configs.JobConfigs.MaxExecuteTime),
 		Subscriber(configs.Subscriber),
 	}
 }

@@ -12,5 +12,5 @@ func NewProgressUpdated(total, pending, executing, completed int64) *ProgressUpd
 }
 
 func (event *ProgressUpdated) Topic() string {
-	return "progress-updated"
+	return ProgressUpdatedTopic
 }

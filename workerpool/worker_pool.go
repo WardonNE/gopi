@@ -1,7 +1,6 @@
 package workerpool
 
 import (
-	"context"
 	"sync"
 	"time"
 
@@ -29,9 +28,10 @@ type WorkerPool struct {
 	startAt   time.Time
 	stoppedAt time.Time
 
-	mu          sync.Mutex
-	workers     *maps.HashMap[uuid.UUID, *Worker]
-	stopChannel chan struct{}
+	mu                 sync.Mutex
+	workers            *maps.HashMap[uuid.UUID, *Worker]
+	stopChannel        chan struct{}
+	watcherStopChannel chan struct{}
 
 	driver     driver.DriverInterface
 	maxWorkers int
@@ -43,12 +43,11 @@ type WorkerPool struct {
 	}
 	// job configs
 	jobConfigs struct {
-		maxAttempts              int
-		retryDelay               time.Duration
-		retryMaxDelay            time.Duration
-		retryDelayStep           time.Duration
-		maxExecuteTimePerAttempt time.Duration
-		maxExecuteTimeTotal      time.Duration
+		maxAttempts    int
+		retryDelay     time.Duration
+		retryMaxDelay  time.Duration
+		retryDelayStep time.Duration
+		maxExecuteTime time.Duration
 	}
 }
 
@@ -66,8 +65,13 @@ func DefaultWorkerPool(driver driver.DriverInterface) *WorkerPool {
 	wp.stoppedAt = time.Now()
 	// worker container
 	wp.workers = maps.NewHashMap[uuid.UUID, *Worker]()
+
+	wp.driver = driver
+
 	// stop signal channel
 	wp.stopChannel = make(chan struct{})
+	// watcher stop signal channel
+	wp.watcherStopChannel = make(chan struct{})
 	// configs
 	wp.workerConfigs.batch = DefaultWorkerBatch
 	wp.workerConfigs.maxIdleTime = DefaultWorkerMaxIdleTime
@@ -76,8 +80,7 @@ func DefaultWorkerPool(driver driver.DriverInterface) *WorkerPool {
 	wp.jobConfigs.retryDelay = DefaultJobRetryDelay
 	wp.jobConfigs.retryMaxDelay = DefaultJobRetryMaxDelay
 	wp.jobConfigs.retryDelayStep = DefaultJobRetryDelayStep
-	wp.jobConfigs.maxExecuteTimeTotal = DefaultJobMaxExecuteTimeTotal
-	wp.jobConfigs.maxExecuteTimePerAttempt = DefaultJobMaxExecuteTimePerAttempt
+	wp.jobConfigs.maxExecuteTime = DefaultJobMaxExecuteTimeTotal
 	return wp
 }
 
@@ -174,73 +177,53 @@ func (wp *WorkerPool) Dispatch(job job.JobInterface) bool {
 // Start starts the workerpool
 func (wp *WorkerPool) Start() {
 	wp.start()
-	watchCtx, watchCancel := context.WithCancel(context.Background())
-	defer watchCancel()
-	select {
-	case <-wp.stopChannel:
-		wp.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
-			wp.stopWorker(entry.Value)
-			return true
-		})
-		wp.stop()
-	default:
-		wp.spawnWorkers()
-		go wp.watch(watchCtx)
-	}
+	wp.spawnWorkers()
+	go func() {
+		for {
+			select {
+			case <-wp.watcherStopChannel:
+				return
+			default:
+				workers := wp.workers.Values()
+				for _, w := range workers {
+					if w.ShouldStop() {
+						w.Stop()
+					} else if w.ShouldRelease() {
+						wp.workers.Remove(w.id)
+						w.Release()
+					}
+				}
+				time.Sleep(time.Second)
+			}
+		}
+	}()
 }
 
 // Stop stops the worker pool and all the workers
 func (wp *WorkerPool) Stop() {
-	wp.stopChannel <- struct{}{}
+	wp.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
+		entry.Value.Stop()
+		return true
+	})
+	wp.stop()
 }
 
 // Release releases and removes the workerpool from the [WorkerPoolManager]
 func (wp *WorkerPool) Release() {
+	// if the worker pool is running, stop it first
 	if wp.IsRunning() {
-		wp.Stop()
+		wp.stop()
 	}
+	// notify watcher to stop
+	wp.watcherStopChannel <- struct{}{}
+	// release workers
+	wp.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
+		entry.Value.Release()
+		return true
+	})
+	wp.workers.Clear()
 	close(wp.stopChannel)
-}
-
-func (wp *WorkerPool) shouldStopWorker(w *Worker) bool {
-	return w.IsIdle() && time.Since(w.idledAt) >= wp.workerConfigs.maxIdleTime
-}
-
-func (wp *WorkerPool) shouldReleaseWorker(w *Worker) bool {
-	return w.IsStopped() && time.Since(w.stoppedAt) >= wp.workerConfigs.maxStoppedTime
-}
-
-func (wp *WorkerPool) stopWorker(w *Worker) {
-	w.Stop()
-}
-
-func (wp *WorkerPool) releaseWorker(w *Worker) {
-	w.release()
-	wp.workers.Remove(w.id)
-}
-
-func (wp *WorkerPool) watch(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			wg := sync.WaitGroup{}
-			workers := wp.workers.Values()
-			for _, w := range workers {
-				wg.Add(1)
-				go func(w *Worker) {
-					defer wg.Done()
-					if wp.shouldStopWorker(w) {
-						wp.stopWorker(w)
-					} else if wp.shouldReleaseWorker(w) {
-						wp.releaseWorker(w)
-					}
-				}(w)
-			}
-			wg.Wait()
-		}
-	}
+	close(wp.watcherStopChannel)
 }
 
 func (wp *WorkerPool) spawnWorkers() {
@@ -264,6 +247,7 @@ func (wp *WorkerPool) spawnWorkers() {
 	wp.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
 		if entry.Value.IsStopped() {
 			go entry.Value.Start()
+			c++
 		}
 		return true
 	})

@@ -12,5 +12,5 @@ func NewFailedHandle(job job.JobInterface, err error) *FailedHandle {
 }
 
 func (event *FailedHandle) Topic() string {
-	return "failed-handle"
+	return FailedHandleTopic
 }

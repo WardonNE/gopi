@@ -30,6 +30,7 @@ func NewMemoryDriver() *MemoryDriver {
 	_ = driver.AbstractDriver.EventBus.AddEvent(new(event.AfterHandle))
 	_ = driver.AbstractDriver.EventBus.AddEvent(new(event.FailedHandle))
 	_ = driver.AbstractDriver.EventBus.AddEvent(new(event.RetryHandle))
+	_ = driver.AbstractDriver.EventBus.AddEvent(new(event.ProgressUpdated))
 	return driver
 }
 
@@ -46,6 +47,15 @@ func (driver *MemoryDriver) IsEmpty() bool {
 	return driver.ArrayList.IsEmpty()
 }
 
+func (driver *MemoryDriver) onProgressUpdated() {
+	_ = driver.EventBus.Dispatch(event.NewProgressUpdated(
+		driver.total,
+		driver.pending,
+		driver.executing,
+		driver.completed,
+	), nil)
+}
+
 // Enqueue pushes a job to queue
 func (driver *MemoryDriver) Enqueue(job job.JobInterface) bool {
 	driver.Lock()
@@ -53,6 +63,7 @@ func (driver *MemoryDriver) Enqueue(job job.JobInterface) bool {
 	driver.ArrayList.Push(job)
 	driver.total++
 	driver.pending++
+	go driver.onProgressUpdated()
 	return true
 }
 
@@ -66,6 +77,7 @@ func (driver *MemoryDriver) Dequeue() (job.JobInterface, bool) {
 	job, ok := driver.ArrayList.Shift(), true
 	driver.executing++
 	driver.pending--
+	go driver.onProgressUpdated()
 	return job, ok
 }
 
@@ -78,6 +90,7 @@ func (driver *MemoryDriver) Remove(value job.JobInterface) bool {
 	})
 	driver.total--
 	driver.pending--
+	go driver.onProgressUpdated()
 	return true
 }
 
@@ -85,6 +98,7 @@ func (driver *MemoryDriver) Remove(value job.JobInterface) bool {
 func (driver *MemoryDriver) Ack(job job.JobInterface) bool {
 	driver.executing--
 	driver.completed++
+	go driver.onProgressUpdated()
 	return true
 }
 
@@ -92,6 +106,7 @@ func (driver *MemoryDriver) Ack(job job.JobInterface) bool {
 func (driver *MemoryDriver) Fail(job job.JobInterface) {
 	driver.executing--
 	driver.completed++
+	go driver.onProgressUpdated()
 }
 
 // Flush removes all failed jobs
@@ -103,7 +118,7 @@ func (driver *MemoryDriver) Reload() {
 }
 
 // Subscribe add a subscriber to queue events
-func (driver *MemoryDriver) Subscribe(subscriber subscriber.Subscriber) {
+func (driver *MemoryDriver) Subscribe(subscriber subscriber.SubscriberInterface) {
 	_ = driver.EventBus.Subscribe(subscriber)
 }
 

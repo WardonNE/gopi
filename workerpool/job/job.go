@@ -29,14 +29,10 @@ type JobInterface interface {
 	// if nil is retruned, it will use the pool's config, see [WorkerPoolConfigs]
 	// if negative is returned it will use 0
 	RetryDelayStep() *time.Duration
-	// MaxExecuteTimeTotal returns the max total execution time
+	// MaxExecuteTime returns the max total execution time
 	// if nil is returned it will use the pool's config, see [WorkerPoolConfigs]
 	// if negative is returned it will use 0
-	MaxExecuteTimeTotal() *time.Duration
-	// MaxExecuteTimePerAttempt returns the max execution time of per attempt
-	// if nil is returned if will use the pool's config, see [WorkerPoolConfigs]
-	// if negative is returned it will use 0
-	MaxExecuteTimePerAttempt() *time.Duration
+	MaxExecuteTime() *time.Duration
 	// Handle is the main function to handle the job
 	// when an error was returned, if necessary, it will be retried
 	// if it still returns an error after max attempts, an error will be passed to the [Failed] function
@@ -83,10 +79,6 @@ func (job *Job) RetryDelayStep() *time.Duration {
 	return nil
 }
 
-func (job *Job) MaxExecuteTimeTotal() *time.Duration {
-	return nil
-}
-
-func (job *Job) MaxExecuteTimePerAttempt() *time.Duration {
+func (job *Job) MaxExecuteTime() *time.Duration {
 	return nil
 }

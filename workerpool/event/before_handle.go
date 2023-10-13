@@ -11,5 +11,5 @@ func NewBeforeHandle(job job.JobInterface) *BeforeHandle {
 }
 
 func (event *BeforeHandle) Topic() string {
-	return "before-handle"
+	return BeforeHandleTopic
 }

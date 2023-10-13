@@ -13,5 +13,5 @@ func NewRetryHandle(job job.JobInterface, attempts int, err error) *RetryHandle 
 }
 
 func (event *RetryHandle) Topic() string {
-	return "retry-handle"
+	return RetryHandleTopic
 }

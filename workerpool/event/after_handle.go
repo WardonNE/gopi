@@ -13,5 +13,5 @@ func NewAfterHandle(job job.JobInterface) *AfterHandle {
 }
 
 func (event *AfterHandle) Topic() string {
-	return "after-handle"
+	return AfterHandleTopic
 }

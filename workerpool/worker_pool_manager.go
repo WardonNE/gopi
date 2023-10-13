@@ -15,18 +15,18 @@ func NewWorkerPoolManager() *WorkerPoolManager {
 	return manager
 }
 
-// ListWorkPools lists all registered worker pools
-func (wpm *WorkerPoolManager) ListWorkPools() map[string]*WorkerPool {
+// List lists all registered worker pools
+func (wpm *WorkerPoolManager) List() map[string]*WorkerPool {
 	return wpm.pools.ToMap()
 }
 
-// GetWorkerPool returns Worker pool by the specific name
-func (wpm *WorkerPoolManager) GetWorkerPool(name string) *WorkerPool {
+// Get returns Worker pool by the specific name
+func (wpm *WorkerPoolManager) Get(name string) *WorkerPool {
 	return wpm.pools.Get(name)
 }
 
-// CreateWorkerPool creates a new worker pool with max worker count and registers it with the specific name
-func (wpm *WorkerPoolManager) CreateWorkerPool(name string, driver driver.DriverInterface, options ...Option) (workerPool *WorkerPool, isNew bool) {
+// Create creates a new worker pool with max worker count and registers it with the specific name
+func (wpm *WorkerPoolManager) Create(name string, driver driver.DriverInterface, options ...Option) (workerPool *WorkerPool, isNew bool) {
 	if wpm.pools.ContainsKey(name) {
 		return wpm.pools.Get(name), false
 	}
@@ -36,8 +36,8 @@ func (wpm *WorkerPoolManager) CreateWorkerPool(name string, driver driver.Driver
 	return workerPool, true
 }
 
-// AddWorkerPool registers an existing worker pool
-func (wpm *WorkerPoolManager) AddWorkerPool(name string, workerPool *WorkerPool) (bool, error) {
+// Add registers an existing worker pool
+func (wpm *WorkerPoolManager) Add(name string, workerPool *WorkerPool) (bool, error) {
 	if wpm.pools.ContainsKey(name) {
 		return false, ErrWorkerPoolNameExists
 	}
@@ -47,11 +47,12 @@ func (wpm *WorkerPoolManager) AddWorkerPool(name string, workerPool *WorkerPool)
 		return false, ErrWorkerPoolInstanceExists
 	}
 	wpm.pools.Set(name, workerPool)
+	workerPool.name = name
 	return true, nil
 }
 
-// StartWorkerPool starts the specific worker pool
-func (wpm *WorkerPoolManager) StartWorkerPool(name string) {
+// Start starts the specific worker pool
+func (wpm *WorkerPoolManager) Start(name string) {
 	if wpm.pools.ContainsKey(name) {
 		workerPool := wpm.pools.Get(name)
 		if workerPool.IsStopped() {
@@ -60,8 +61,8 @@ func (wpm *WorkerPoolManager) StartWorkerPool(name string) {
 	}
 }
 
-// StopWorkerPool stops the specific worker pool
-func (wpm *WorkerPoolManager) StopWorkerPool(name string) {
+// Stop stops the specific worker pool
+func (wpm *WorkerPoolManager) Stop(name string) {
 	if wpm.pools.ContainsKey(name) {
 		workerPool := wpm.pools.Get(name)
 		if workerPool.IsRunning() {
@@ -70,8 +71,8 @@ func (wpm *WorkerPoolManager) StopWorkerPool(name string) {
 	}
 }
 
-// ReleaseWorkerPool releases the specific worker pool
-func (wpm *WorkerPoolManager) ReleaseWorkerPool(name string) {
+// Release releases the specific worker pool
+func (wpm *WorkerPoolManager) Release(name string) {
 	if wpm.pools.ContainsKey(name) {
 		workerPool := wpm.pools.Get(name)
 		if workerPool.IsRunning() {
