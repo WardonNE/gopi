@@ -1,6 +1,7 @@
 package router
 
 import (
+	libctx "context"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -35,6 +36,9 @@ func (router *Router) Run(addr ...string) error {
 	for _, route := range router.routes {
 		router.HTTPRouter.Handle(route.Method(), route.Path(), func(route IRoute) httprouter.Handle {
 			return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+				ctx := r.Context()
+				ctx = libctx.WithValue(ctx, httprouter.ParamsKey, p)
+				r = r.WithContext(ctx)
 				request := context.NewRequest(r, p)
 				resp := route.HandleRequest(request)
 				resp.Send(w, r)

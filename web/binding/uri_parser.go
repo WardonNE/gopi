@@ -9,7 +9,6 @@ import (
 )
 
 type URIParser struct {
-	params httprouter.Params
 }
 
 func (uriParser *URIParser) Parse(request *http.Request, container any) error {
@@ -17,7 +16,8 @@ func (uriParser *URIParser) Parse(request *http.Request, container any) error {
 		Value: make(map[string][]string),
 		File:  make(map[string][]*multipart.FileHeader),
 	}
-	for _, param := range uriParser.params {
+	params := httprouter.ParamsFromContext(request.Context())
+	for _, param := range params {
 		form.Value[param.Key] = []string{param.Value}
 	}
 	return utils.FormDataToStruct(form, container, "param")

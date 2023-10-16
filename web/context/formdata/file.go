@@ -14,6 +14,7 @@ type UploadedFile struct {
 	fileHeader *multipart.FileHeader
 	file       multipart.File
 	mime       *mimetype.MIME
+	content    *[]byte
 }
 
 func NewUploadedFile(file multipart.File, fileHeader *multipart.FileHeader) (*UploadedFile, error) {
@@ -50,6 +51,9 @@ func (uploadedFile *UploadedFile) Extension() string {
 }
 
 func (uploadedFile *UploadedFile) Content() ([]byte, error) {
+	if uploadedFile.content != nil {
+		return *uploadedFile.content, nil
+	}
 	content := make([]byte, 0, uploadedFile.fileHeader.Size)
 	scanner := bufio.NewScanner(uploadedFile.file)
 	scanner.Split(bufio.ScanBytes)
