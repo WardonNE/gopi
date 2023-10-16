@@ -6,16 +6,19 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
+// TOMLResponse used to sends TOML-encoded data
 type TOMLResponse struct {
 	*Response
 	data any
 }
 
+// SetContent sets response body content
 func (tomlResponse *TOMLResponse) SetContent(data any) IResponse {
 	tomlResponse.data = data
 	return tomlResponse
 }
 
+// Send sends the response
 func (tomlResponse *TOMLResponse) Send(w http.ResponseWriter, r *http.Request) {
 	tomlBytes, err := toml.Marshal(tomlResponse.data)
 	if err != nil {

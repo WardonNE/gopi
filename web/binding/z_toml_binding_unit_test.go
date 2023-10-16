@@ -1,7 +1,6 @@
 package binding
 
 import (
-	"encoding/xml"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,18 +9,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestXMLParser_Parse(t *testing.T) {
+func TestToml(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var container = &struct {
-			XMLName xml.Name `xml:"root"`
-			Name    string   `xml:"name"`
-			Address string   `xml:"address"`
-			Age     int      `xml:"age"`
-			Valid   bool     `xml:"valid"`
-			Tags    []string `xml:"tags"`
+			Name    string   `yaml:"name"`
+			Address string   `yaml:"address"`
+			Age     int      `yaml:"age"`
+			Valid   bool     `yaml:"valid"`
+			Tags    []string `yaml:"tags"`
 		}{}
-		parser := new(XMLParser)
-		assert.Nil(t, parser.Parse(r, container))
+
+		assert.Nil(t, TOML(r, container))
 		assert.Equal(t, "wardonne", container.Name)
 		assert.Equal(t, "shanghai", container.Address)
 		assert.Equal(t, 10, container.Age)
@@ -29,14 +27,11 @@ func TestXMLParser_Parse(t *testing.T) {
 		assert.Equal(t, []string{"a", "b"}, container.Tags)
 	}))
 	defer ts.Close()
-	r := strings.NewReader(`<root>
-		<name>wardonne</name>
-		<address>shanghai</address>
-		<age>10</age>
-		<valid>true</valid>
-		<tags>a</tags>
-		<tags>b</tags>
-	</root>`)
+	r := strings.NewReader(`name = "wardonne"
+	address = "shanghai"
+	age = 10
+	valid = true
+	tags = ["a", "b"]`)
 	resp, err := http.Post(ts.URL, "application/json", r)
 	assert.Nil(t, err)
 	defer resp.Body.Close()

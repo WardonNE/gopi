@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTomlParser_Parse(t *testing.T) {
+func TestYAMLParser_Parse(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var container = &struct {
 			Name    string   `yaml:"name"`
@@ -18,8 +18,7 @@ func TestTomlParser_Parse(t *testing.T) {
 			Valid   bool     `yaml:"valid"`
 			Tags    []string `yaml:"tags"`
 		}{}
-		parser := new(TOMLParser)
-		assert.Nil(t, parser.Parse(r, container))
+		assert.Nil(t, YAML(r, container))
 		assert.Equal(t, "wardonne", container.Name)
 		assert.Equal(t, "shanghai", container.Address)
 		assert.Equal(t, 10, container.Age)
@@ -27,11 +26,13 @@ func TestTomlParser_Parse(t *testing.T) {
 		assert.Equal(t, []string{"a", "b"}, container.Tags)
 	}))
 	defer ts.Close()
-	r := strings.NewReader(`name = "wardonne"
-	address = "shanghai"
-	age = 10
-	valid = true
-	tags = ["a", "b"]`)
+	r := strings.NewReader(`name: "wardonne"
+address: "shanghai"
+age: 10
+valid: true
+tags:
+ - "a"
+ - "b"`)
 	resp, err := http.Post(ts.URL, "application/json", r)
 	assert.Nil(t, err)
 	defer resp.Body.Close()

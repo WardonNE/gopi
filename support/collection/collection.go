@@ -5,6 +5,7 @@ import (
 	"github.com/wardonne/gopi/support/serializer"
 )
 
+// Conllection is the base interface of [List] and [Set]
 type Collection[E any] interface {
 	serializer.JSONSerializer
 	serializer.ArraySerializer[E]

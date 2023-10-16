@@ -10,6 +10,8 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
+// UploadedFile is an object contains the information of file which is uploaded through multipart-form
+// it alse provides some functions to operate the file uploaded
 type UploadedFile struct {
 	fileHeader *multipart.FileHeader
 	file       multipart.File
@@ -17,6 +19,7 @@ type UploadedFile struct {
 	content    *[]byte
 }
 
+// NewUploadedFile creates an instance of [UploadedFile]
 func NewUploadedFile(file multipart.File, fileHeader *multipart.FileHeader) (*UploadedFile, error) {
 	mime, err := mimetype.DetectReader(file)
 	if _, err := file.Seek(0, 0); err != nil {
@@ -30,26 +33,32 @@ func NewUploadedFile(file multipart.File, fileHeader *multipart.FileHeader) (*Up
 	return uploadedFile, err
 }
 
+// Name returns the name of the uploaded file
 func (uploadedFile *UploadedFile) Name() string {
 	return uploadedFile.fileHeader.Filename
 }
 
+// ClientExtension returns the ext from the name of the uploaded file
 func (uploadedFile *UploadedFile) ClientExtension() string {
 	return filepath.Ext(uploadedFile.fileHeader.Filename)
 }
 
+// ClientMimeType returns the mimetype of the uploaded file from "Content-Type" header
 func (uploadedFile *UploadedFile) ClientMimeType() string {
 	return uploadedFile.fileHeader.Header.Get("Content-type")
 }
 
+// MimeType returns the mimetype detected from file content
 func (uploadedFile *UploadedFile) MimeType() string {
 	return uploadedFile.mime.String()
 }
 
+// Extension returns the ext of mimetype detected from file content
 func (uploadedFile *UploadedFile) Extension() string {
 	return uploadedFile.mime.Extension()
 }
 
+// Content returns the content of the uploaded file
 func (uploadedFile *UploadedFile) Content() ([]byte, error) {
 	if uploadedFile.content != nil {
 		return *uploadedFile.content, nil
@@ -66,6 +75,7 @@ func (uploadedFile *UploadedFile) Content() ([]byte, error) {
 	return content, nil
 }
 
+// SaveAs saves the uploaded file as the given filename
 func (uploadedFile *UploadedFile) SaveAs(filename string) error {
 	dst, err := os.Create(filename)
 	if err != nil {
@@ -77,6 +87,7 @@ func (uploadedFile *UploadedFile) SaveAs(filename string) error {
 	return nil
 }
 
+// Close closes the file resource
 func (uploadedFile *UploadedFile) Close() error {
 	return uploadedFile.file.Close()
 }

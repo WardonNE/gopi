@@ -1,4 +1,4 @@
-package utils
+package binding
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 	"github.com/wardonne/gopi/web/context/formdata"
 )
 
-func FormDataToStruct(form *multipart.Form, container any, tag string) error {
+func formtostruct(form *multipart.Form, container any, tag string) error {
 	containerType := reflect.TypeOf(container)
 	if containerType.Kind() != reflect.Ptr {
 		return fmt.Errorf("Parser(non-pointer: (%s)", containerType.String())
@@ -210,11 +210,11 @@ func createValue(fieldType reflect.Type, form *multipart.Form, key string, tag r
 			} else if fieldType.Kind() == reflect.String {
 				v = reflect.ValueOf(values[0])
 			} else if fieldType.Kind() == reflect.Int || fieldType.Kind() == reflect.Int8 || fieldType.Kind() == reflect.Int16 || fieldType.Kind() == reflect.Int32 || fieldType.Kind() == reflect.Int64 {
-				v = reflect.ValueOf(utils.StrToInt(values[0])).Convert(fieldType)
+				v = reflect.ValueOf(utils.StrToInt64(values[0])).Convert(fieldType)
 			} else if fieldType.Kind() == reflect.Uint || fieldType.Kind() == reflect.Uint8 || fieldType.Kind() == reflect.Uint16 || fieldType.Kind() == reflect.Uint32 || fieldType.Kind() == reflect.Uint64 {
-				v = reflect.ValueOf(utils.StrToUint(values[0])).Convert(fieldType)
+				v = reflect.ValueOf(utils.StrToUint64(values[0])).Convert(fieldType)
 			} else if fieldType.Kind() == reflect.Float32 || fieldType.Kind() == reflect.Float64 {
-				v = reflect.ValueOf(utils.StrToFloat(values[0])).Convert(fieldType)
+				v = reflect.ValueOf(utils.StrToFloat64(values[0])).Convert(fieldType)
 			} else if fieldType.Kind() == reflect.Bool {
 				v = reflect.ValueOf(utils.StrToBool(values[0]))
 			} else if fieldType.Kind() == reflect.Slice {

@@ -13,7 +13,7 @@ import (
 	"github.com/wardonne/gopi/web/context/formdata"
 )
 
-func TestFormParser_Parse(t *testing.T) {
+func TestForm(t *testing.T) {
 	t.Run("PostForm", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var container = &struct {
@@ -23,8 +23,7 @@ func TestFormParser_Parse(t *testing.T) {
 				Valid   bool     `form:"valid"`
 				Tags    []string `form:"tags"`
 			}{}
-			parser := new(FormParser)
-			assert.Nil(t, parser.Parse(r, container))
+			assert.Nil(t, Form(r, container))
 			assert.Equal(t, "wardonne", container.Name)
 			assert.Equal(t, "shanghai", container.Address)
 			assert.Equal(t, 10, container.Age)
@@ -53,8 +52,7 @@ func TestFormParser_Parse(t *testing.T) {
 				Valid   bool     `form:"valid"`
 				Tags    []string `form:"tags"`
 			}{}
-			parser := new(FormParser)
-			assert.Nil(t, parser.Parse(r, container))
+			assert.Nil(t, Form(r, container))
 			assert.Equal(t, "wardonne", container.Name)
 			assert.Equal(t, "shanghai", container.Address)
 			assert.Equal(t, 10, container.Age)
@@ -82,8 +80,7 @@ func TestFormParser_Parse(t *testing.T) {
 				File1 *formdata.UploadedFile `form:"file1"`
 				File2 *formdata.UploadedFile `form:"file2"`
 			}{}
-			parser := new(FormParser)
-			assert.Nil(t, parser.Parse(r, container))
+			assert.Nil(t, Form(r, container))
 			content1, err := container.File1.Content()
 			assert.Nil(t, err)
 			assert.Equal(t, "filename1.txt", container.File1.Name())
@@ -125,8 +122,8 @@ func TestFormParser_Parse(t *testing.T) {
 			container := &struct {
 				Files formdata.UploadedFiles `form:"file[]"`
 			}{}
-			parser := new(FormParser)
-			assert.Nil(t, parser.Parse(r, container))
+
+			assert.Nil(t, Form(r, container))
 			content1, err := container.Files[0].Content()
 			assert.Nil(t, err)
 			assert.Equal(t, "filename1.txt", container.Files[0].Name())
@@ -174,8 +171,8 @@ func TestFormParser_Parse(t *testing.T) {
 				Valid   bool                   `form:"valid"`
 				Tags    []string               `form:"tags"`
 			}{}
-			parser := new(FormParser)
-			assert.Nil(t, parser.Parse(r, container))
+
+			assert.Nil(t, Form(r, container))
 			content1, err := container.File1.Content()
 			assert.Nil(t, err)
 			assert.Equal(t, "filename1.txt", container.File1.Name())
@@ -186,7 +183,7 @@ func TestFormParser_Parse(t *testing.T) {
 			assert.Equal(t, "filename2.txt", container.File2.Name())
 			assert.Equal(t, "hello world in file2", string(content2))
 
-			assert.Nil(t, parser.Parse(r, container))
+			assert.Nil(t, Form(r, container))
 			assert.Equal(t, "wardonne", container.Name)
 			assert.Equal(t, "shanghai", container.Address)
 			assert.Equal(t, 10, container.Age)

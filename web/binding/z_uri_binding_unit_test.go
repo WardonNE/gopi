@@ -26,8 +26,8 @@ func TestURIParser_Parse(t *testing.T) {
 			Age     int    `param:"age"`
 			Valid   bool   `param:"valid"`
 		}{}
-		parser := new(URIParser)
-		assert.Nil(t, parser.Parse(r, container))
+
+		assert.Nil(t, URI(r, container))
 		assert.Equal(t, "wardonne", container.Name)
 		assert.Equal(t, "shanghai", container.Address)
 		assert.Equal(t, 10, container.Age)

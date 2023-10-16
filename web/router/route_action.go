@@ -10,8 +10,10 @@ import (
 	"github.com/wardonne/gopi/web/binding"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
+	"github.com/wardonne/gopi/web/middleware/validate"
 )
 
+// RouteAction route of controller's action
 type RouteAction struct {
 	Route
 	handler        string
@@ -19,29 +21,34 @@ type RouteAction struct {
 	controllerType reflect.Type
 }
 
+// AS sets the name
 func (action *RouteAction) AS(name string) IRoute {
 	action.name = name
 	return action
 }
 
+// Use sets middlewares
 func (action *RouteAction) Use(middlewares ...middleware.IMiddleware) IRoute {
 	action.middlewares.AddAll(middlewares...)
 	return action
 }
 
+// Validate binds validation form to the route
 func (action *RouteAction) Validate(form validation.IValidateForm, bindings ...binding.Binding) IRoute {
 	formType := reflect.TypeOf(form)
 	if formType.Kind() != reflect.Ptr {
 		panic("Non-ptr: " + formType.String())
 	}
-	action.validation = middleware.Validation(form, bindings...)
+	action.validation = validate.New(action.router.validateEngine, form, bindings...)
 	return action
 }
 
+// Handler returns the handler's name
 func (action *RouteAction) Handler() string {
 	return fmt.Sprintf("(%s).%s", action.controllerType.String(), action.handler)
 }
 
+// HandleRequest handles the http request
 func (action *RouteAction) HandleRequest(request *context.Request) context.IResponse {
 	var controllerValue reflect.Value
 	if action.controllerType.Kind() == reflect.Ptr {
@@ -60,7 +67,7 @@ func (action *RouteAction) HandleRequest(request *context.Request) context.IResp
 	})
 	pl = pl.Send(request).Through(pipes...)
 	if action.HasValidation() {
-		pl = pl.AppendThrough(action.validation)
+		pl = pl.AppendThroughCallback(action.validation)
 	}
 	return pl.Then(func(request *context.Request) context.IResponse {
 		outputs := controllerValue.MethodByName(action.handler).Call([]reflect.Value{})

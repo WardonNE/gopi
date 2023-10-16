@@ -5,13 +5,10 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/wardonne/gopi/web/utils"
 )
 
-type URIParser struct {
-}
-
-func (uriParser *URIParser) Parse(request *http.Request, container any) error {
+// URI implements [Parser], it parses httprouter.[Params] into container
+func URI(request *http.Request, container any) error {
 	form := &multipart.Form{
 		Value: make(map[string][]string),
 		File:  make(map[string][]*multipart.FileHeader),
@@ -20,12 +17,5 @@ func (uriParser *URIParser) Parse(request *http.Request, container any) error {
 	for _, param := range params {
 		form.Value[param.Key] = []string{param.Value}
 	}
-	return utils.FormDataToStruct(form, container, "param")
-}
-
-type uriBinding struct {
-}
-
-func (u *uriBinding) Parser() Parser {
-	return &URIParser{}
+	return formtostruct(form, container, "param")
 }

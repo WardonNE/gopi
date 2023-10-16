@@ -38,7 +38,7 @@ func (p *Pipeline[P, R]) AppendThroughCallback(callback Handler[P, R]) *Pipeline
 	return p
 }
 
-func (p *Pipeline[P, R]) Then(destination Callback[P, R]) R {
+func (p *Pipeline[P, R]) Then(destination Next[P, R]) R {
 	p.destination = destination
 	stack := p.destination
 	length := len(p.pipes)

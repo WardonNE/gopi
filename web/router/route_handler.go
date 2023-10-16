@@ -10,36 +10,43 @@ import (
 	"github.com/wardonne/gopi/web/binding"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
+	"github.com/wardonne/gopi/web/middleware/validate"
 )
 
+// RouteHandler route of handler function
 type RouteHandler struct {
 	Route
 	handler web.Handler
 }
 
+// AS sets the name
 func (route *RouteHandler) AS(name string) IRoute {
 	route.name = name
 	return route
 }
 
+// Use sets middlewares
 func (route *RouteHandler) Use(middlewares ...middleware.IMiddleware) IRoute {
 	route.middlewares.AddAll(middlewares...)
 	return route
 }
 
+// Validate binds validation form to the route
 func (route *RouteHandler) Validate(form validation.IValidateForm, bindings ...binding.Binding) IRoute {
 	formType := reflect.TypeOf(form)
 	if formType.Kind() != reflect.Ptr {
 		panic("Non-ptr: " + formType.String())
 	}
-	route.validation = middleware.Validation(form, bindings...)
+	route.validation = validate.New(route.router.validateEngine, form, bindings...)
 	return route
 }
 
+// Handler returns the handler's name
 func (route *RouteHandler) Handler() string {
 	return runtime.FuncForPC(reflect.ValueOf(route.handler).Pointer()).Name()
 }
 
+// HandleRequest handles the http request
 func (route *RouteHandler) HandleRequest(request *context.Request) context.IResponse {
 	pl := new(pipeline.Pipeline[*context.Request, context.IResponse])
 	pl = pl.Send(request)
@@ -48,7 +55,7 @@ func (route *RouteHandler) HandleRequest(request *context.Request) context.IResp
 		return true
 	})
 	if route.HasValidation() {
-		pl = pl.AppendThrough(route.validation)
+		pl = pl.AppendThroughCallback(route.validation)
 	}
 	return pl.Then(route.handler)
 }

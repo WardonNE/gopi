@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"encoding/xml"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,17 +10,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestYAMLParser_Parse(t *testing.T) {
+func TestXML(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var container = &struct {
-			Name    string   `yaml:"name"`
-			Address string   `yaml:"address"`
-			Age     int      `yaml:"age"`
-			Valid   bool     `yaml:"valid"`
-			Tags    []string `yaml:"tags"`
+			XMLName xml.Name `xml:"root"`
+			Name    string   `xml:"name"`
+			Address string   `xml:"address"`
+			Age     int      `xml:"age"`
+			Valid   bool     `xml:"valid"`
+			Tags    []string `xml:"tags"`
 		}{}
-		parser := new(YAMLParser)
-		assert.Nil(t, parser.Parse(r, container))
+
+		assert.Nil(t, XML(r, container))
 		assert.Equal(t, "wardonne", container.Name)
 		assert.Equal(t, "shanghai", container.Address)
 		assert.Equal(t, 10, container.Age)
@@ -27,13 +29,14 @@ func TestYAMLParser_Parse(t *testing.T) {
 		assert.Equal(t, []string{"a", "b"}, container.Tags)
 	}))
 	defer ts.Close()
-	r := strings.NewReader(`name: "wardonne"
-address: "shanghai"
-age: 10
-valid: true
-tags:
- - "a"
- - "b"`)
+	r := strings.NewReader(`<root>
+		<name>wardonne</name>
+		<address>shanghai</address>
+		<age>10</age>
+		<valid>true</valid>
+		<tags>a</tags>
+		<tags>b</tags>
+	</root>`)
 	resp, err := http.Post(ts.URL, "application/json", r)
 	assert.Nil(t, err)
 	defer resp.Body.Close()

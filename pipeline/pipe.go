@@ -1,18 +1,18 @@
 package pipeline
 
-type Callback[P, R any] func(passable P) R
+type Next[P, R any] func(passable P) R
 
-type Handler[P, R any] func(passable P, next Callback[P, R]) R
+type Handler[P, R any] func(passable P, next Next[P, R]) R
 
 type IPipe[P, R any] interface {
-	Handle(passable P, next Callback[P, R]) R
+	Handle(passable P, next Next[P, R]) R
 }
 
 type pipe[P, R any] struct {
 	handler Handler[P, R]
 }
 
-func (s *pipe[P, R]) Handle(passable P, next Callback[P, R]) R {
+func (s *pipe[P, R]) Handle(passable P, next Next[P, R]) R {
 	return s.handler(passable, next)
 }
 

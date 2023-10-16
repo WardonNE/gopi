@@ -32,7 +32,7 @@ type DriverInterface interface {
 }
 
 type AbstractDriver struct {
-	EventBus eventbus.EventBusInterface
+	EventBus eventbus.IEventBus
 }
 
 // DispatchEvent dispatches specifia event

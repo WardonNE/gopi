@@ -7,22 +7,26 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
+// ReaderResponse used to send data read from a reader
 type ReaderResponse struct {
 	*Response
 	contentType string
 	reader      io.Reader
 }
 
+// SetReader sets the reader
 func (readerResponse *ReaderResponse) SetReader(reader io.Reader) *ReaderResponse {
 	readerResponse.reader = reader
 	return readerResponse
 }
 
+// SetContentType sets response Content-Type header
 func (readerResponse *ReaderResponse) SetContentType(contentType string) *ReaderResponse {
 	readerResponse.contentType = contentType
 	return readerResponse
 }
 
+// Send sends the response
 func (readerResponse *ReaderResponse) Send(w http.ResponseWriter, r *http.Request) {
 	// set cookies
 	for _, cookie := range readerResponse.cookies {

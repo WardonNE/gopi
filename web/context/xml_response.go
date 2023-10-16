@@ -5,16 +5,19 @@ import (
 	"net/http"
 )
 
+// XMLResponse used to send XML-encoded data
 type XMLResponse struct {
 	*Response
 	data any
 }
 
+// SetContent sets response body content
 func (xmlResponse *XMLResponse) SetContent(data any) IResponse {
 	xmlResponse.data = data
 	return xmlResponse
 }
 
+// Send sends the response
 func (xmlResponse *XMLResponse) Send(w http.ResponseWriter, r *http.Request) {
 	xmlBytes, err := xml.Marshal(xmlResponse.data)
 	if err != nil {

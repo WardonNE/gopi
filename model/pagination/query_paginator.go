@@ -13,7 +13,7 @@ type QueryPaginator[T any] struct {
 
 func NewQueryPaginator[T any](db *gorm.DB, pageSize, page int) *QueryPaginator[T] {
 	paginator := new(QueryPaginator[T])
-	paginator.LazyPaginator = *pagination.NewLazyPaginator[T](paginator.fetchTotal, paginator.fetchItems, pageSize, page)
+	paginator.LazyPaginator = *pagination.Lazy[T](paginator.fetchTotal, paginator.fetchItems, pageSize, page)
 	paginator.db = db
 	return paginator
 }

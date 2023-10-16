@@ -1,14 +1,9 @@
 package binding
 
-var (
-	BindingJSON = &jsonBinding{}
-	BindingXML  = &xmlBinding{}
-	BindingYAML = &yamlBinding{}
-	BindingTOML = &tomlBinding{}
-	BindingURI  = &uriBinding{}
-	BindingFORM = &formBinding{}
-)
+import "net/http"
 
-type Binding interface {
-	Parser() Parser
-}
+// Parser is the function used to parse request params into container
+type Parser func(r *http.Request, container any) error
+
+// Binding is the alias of [Parser]
+type Binding = Parser

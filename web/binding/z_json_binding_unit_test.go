@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJSONParser_Parse(t *testing.T) {
+func TestJSON(t *testing.T) {
 	t.Run("ToStruct", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var container = &struct {
@@ -19,8 +19,8 @@ func TestJSONParser_Parse(t *testing.T) {
 				Valid   bool     `json:"valid"`
 				Tags    []string `json:"tags"`
 			}{}
-			parser := new(JSONParser)
-			assert.Nil(t, parser.Parse(r, container))
+
+			assert.Nil(t, JSON(r, container))
 			assert.Equal(t, "wardonne", container.Name)
 			assert.Equal(t, "shanghai", container.Address)
 			assert.Equal(t, 10, container.Age)
@@ -37,8 +37,8 @@ func TestJSONParser_Parse(t *testing.T) {
 	t.Run("ToMap", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var container = map[string]any{}
-			parser := new(JSONParser)
-			assert.Nil(t, parser.Parse(r, &container))
+
+			assert.Nil(t, JSON(r, &container))
 			assert.Equal(t, "wardonne", container["name"])
 			assert.Equal(t, "shanghai", container["address"])
 			assert.EqualValues(t, 10, container["age"])

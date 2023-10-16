@@ -1,136 +1,90 @@
 package formdata
 
 import (
-	"strconv"
 	"time"
+
+	"github.com/wardonne/gopi/utils"
 )
 
+// Value is a simple superset of string that provides type convertion methods
 type Value string
 
-func NewValue(value string) Value {
-	return Value(value)
-}
-
-func (value Value) ToString() string {
+// String returns the string value
+func (value Value) String() string {
 	return string(value)
 }
 
+// ToInt converts the value to type
 func (value Value) ToInt() int {
-	if v, err := strconv.ParseInt(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return int(v)
-	}
+	return utils.StrToInt(value)
 }
 
+// ToUint converts the value to uint
 func (value Value) ToUint() uint {
-	if v, err := strconv.ParseUint(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return uint(v)
-	}
+	return utils.StrToUint(value)
 }
 
+// ToInt8 converts the value to uint8
 func (value Value) ToInt8() int8 {
-	if v, err := strconv.ParseInt(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return int8(v)
-	}
+	return utils.StrToInt8(value)
 }
 
+// ToUint8 converts the value to uint8
 func (value Value) ToUint8() uint8 {
-	if v, err := strconv.ParseUint(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return uint8(v)
-	}
+	return utils.StrToUint8(value)
 }
 
+// ToInt16 converts the value to int16
 func (value Value) ToInt16() int16 {
-	if v, err := strconv.ParseInt(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return int16(v)
-	}
+	return utils.StrToInt16(value)
 }
 
+// ToUint16 converts the value to uint16
 func (value Value) ToUint16() uint16 {
-	if v, err := strconv.ParseUint(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return uint16(v)
-	}
+	return utils.StrToUint16(value)
 }
 
+// ToInt32 converts the value to int32
 func (value Value) ToInt32() int32 {
-	if v, err := strconv.ParseInt(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return int32(v)
-	}
+	return utils.StrToInt32(value)
 }
 
+// ToUint32 converts the value to uint32
 func (value Value) ToUint32() uint32 {
-	if v, err := strconv.ParseUint(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return uint32(v)
-	}
+	return utils.StrToUint32(value)
 }
 
+// ToInt64 converts the value to int64
 func (value Value) ToInt64() int64 {
-	if v, err := strconv.ParseInt(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
+	return utils.StrToInt64(value)
 }
 
+// ToUint64 converts the value to uint64
 func (value Value) ToUint64() uint64 {
-	if v, err := strconv.ParseUint(value.ToString(), 10, 64); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
+	return utils.StrToUint64(value)
 }
 
+// ToFloat32 converts the value to float32
 func (value Value) ToFloat32() float32 {
-	if v, err := strconv.ParseFloat(value.ToString(), 64); err != nil {
-		panic(err)
-	} else {
-		return float32(v)
-	}
+	return utils.StrToFloat32(value)
 }
 
+// ToFloat64 converts the value to float64
 func (value Value) ToFloat64() float64 {
-	if v, err := strconv.ParseFloat(value.ToString(), 64); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
+	return utils.StrToFloat64(value)
 }
 
+// ToBool converts the value to bool
 func (value Value) ToBool() bool {
-	if v, err := strconv.ParseBool(value.ToString()); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
+	return utils.StrToBool(value)
 }
 
+// ToDuration converts the value to time.Duration
 func (value Value) ToDuration() time.Duration {
-	if v, err := time.ParseDuration(value.ToString()); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
+	return utils.StrToDuration(value)
 }
 
+// ToTime converts the value to time.Time with specific layout
 func (value Value) ToTime(layout string) time.Time {
-	if v, err := time.Parse(layout, value.ToString()); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
+	return utils.StrToTime(value, layout)
 }

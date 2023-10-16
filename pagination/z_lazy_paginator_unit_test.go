@@ -10,7 +10,7 @@ func TestLazyPaginator(t *testing.T) {
 	var totalLoader = func() int64 { return 99 }
 	var itemsLoader = func() []int { return []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9} }
 
-	firstPage := NewLazyPaginator[int](totalLoader, itemsLoader, 10, 1)
+	firstPage := Lazy[int](totalLoader, itemsLoader, 10, 1)
 	assert.EqualValues(t, 0, firstPage.total)
 	assert.Equal(t, []int(nil), firstPage.items)
 	assert.Equal(t, 0, firstPage.lastPage)

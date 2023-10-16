@@ -1,4 +1,3 @@
-// eventbus is a package about handling events
 package eventbus
 
 import (
@@ -8,8 +7,8 @@ import (
 	"github.com/wardonne/gopi/support/maps"
 )
 
-// EventBusInterface is event bus interface
-type EventBusInterface interface {
+// IEventBus is event bus interface
+type IEventBus interface {
 	// AddEvent registers an event to event bus.
 	//
 	// If topic exists, it will returns an error.
@@ -48,7 +47,7 @@ type EventBusInterface interface {
 	Dispatch(event EventInterface, data any) error
 }
 
-var _ EventBusInterface = (*EventBus)(nil)
+var _ IEventBus = (*EventBus)(nil)
 
 // EventBus is a basic implemention of [IEventBus]
 type EventBus struct {

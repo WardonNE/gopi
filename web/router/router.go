@@ -6,16 +6,21 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/wardonne/gopi/support/collection/list"
+	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
+	"github.com/wardonne/gopi/web/middleware/validate"
 )
 
+// Router http router
 type Router struct {
 	*RouteGroup
-	HTTPRouter *httprouter.Router
-	routes     []IRoute
+	HTTPRouter     *httprouter.Router
+	routes         []IRoute
+	validateEngine validate.ValidationEngine
 }
 
+// New creates a new [Router] instance
 func New() *Router {
 	router := &Router{
 		RouteGroup: &RouteGroup{
@@ -24,12 +29,20 @@ func New() *Router {
 			RouteGroups: make([]IRouteGroup, 0),
 			Routes:      make([]*RouteHandler, 0),
 		},
-		HTTPRouter: httprouter.New(),
+		HTTPRouter:     httprouter.New(),
+		validateEngine: validation.Default(),
 	}
 	return router
 }
 
-func (router *Router) Run(addr ...string) error {
+// SetValidateEngine sets custom validate engine
+func (router *Router) SetValidateEngine(ve validate.ValidationEngine) *Router {
+	router.validateEngine = ve
+	return router
+}
+
+// Run starts the http server
+func (router *Router) Run(addr string) error {
 	if router.routes == nil {
 		router.routes = router.List()
 	}
@@ -45,5 +58,5 @@ func (router *Router) Run(addr ...string) error {
 			}
 		}(route))
 	}
-	return http.ListenAndServe(addr[0], router.HTTPRouter)
+	return http.ListenAndServe(addr, router.HTTPRouter)
 }
