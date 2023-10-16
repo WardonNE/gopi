@@ -8,6 +8,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+// JSONEncode encodes data to json format
 func JSONEncode(data any) (jsonBytes []byte, err error) {
 	switch v := data.(type) {
 	case json.Marshaler:
@@ -22,6 +23,7 @@ func JSONEncode(data any) (jsonBytes []byte, err error) {
 	return
 }
 
+// JSONDecode decodes json-encoded data to container
 func JSONDecode(data []byte, container any) error {
 	return json.Unmarshal(data, container)
 }

@@ -1,24 +1,20 @@
 package utils
 
 import (
-	"fmt"
+	"errors"
 	"time"
 )
 
+// RunOut runs callback with time limited
+//
+// It returns an error when timeout
 func RunOut(callback func(), d time.Duration) error {
-	done := make(chan struct{})
-	go func() {
-		callback()
-		done <- struct{}{}
-	}()
-	select {
-	case <-time.After(d):
-		return fmt.Errorf("timeout")
-	case <-done:
-		return nil
-	}
+	return RunOutCause(callback, d, errors.New("timeout"))
 }
 
+// RunOutCause runs callback with time limited
+//
+// It returns custom error when timeout
 func RunOutCause(callback func(), d time.Duration, err error) error {
 	done := make(chan struct{})
 	go func() {
@@ -33,20 +29,20 @@ func RunOutCause(callback func(), d time.Duration, err error) error {
 	}
 }
 
+// RunOutWithError runs callback with time limited
+//
+// When timeout, it returns an error.
+//
+// When callback returns error, it returns the error which callback returned.
 func RunOutWithError(callback func() error, d time.Duration) error {
-	done := make(chan error)
-	go func() {
-		err := callback()
-		done <- err
-	}()
-	select {
-	case <-time.After(d):
-		return fmt.Errorf("timeout")
-	case err := <-done:
-		return err
-	}
+	return RunOutWithErrorCause(callback, d, errors.New("timeout"))
 }
 
+// RunOutWithErrorCause runs callback with time limited
+//
+// When timeout, it returns a custom error.
+//
+// When callback returns error, it returns the error which callback returned.
 func RunOutWithErrorCause(callback func() error, d time.Duration, err error) error {
 	done := make(chan error)
 	go func() {
