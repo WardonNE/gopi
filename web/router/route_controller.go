@@ -6,17 +6,24 @@ import (
 	"strings"
 
 	"github.com/wardonne/gopi/support/collection/list"
-	"github.com/wardonne/gopi/web"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
 )
 
+// IController interface of controller
+type IController interface {
+	// Init inits controller
+	Init(request *context.Request)
+}
+
 // RouteController a route group of [web.IController]
 type RouteController struct {
+	router *Router
+
 	Prefix         string
 	Routes         []*RouteAction
 	Middlewares    *list.ArrayList[middleware.IMiddleware]
-	Controller     web.IController
+	Controller     IController
 	ControllerType reflect.Type
 }
 
@@ -76,6 +83,7 @@ func (group *RouteController) Route(method, path, handler string) *RouteAction {
 
 	action := &RouteAction{
 		Route: Route{
+			router: group.router,
 			name:   "",
 			method: method,
 			path: strings.Join([]string{

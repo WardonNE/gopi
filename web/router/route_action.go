@@ -6,7 +6,6 @@ import (
 
 	"github.com/wardonne/gopi/pipeline"
 	"github.com/wardonne/gopi/validation"
-	"github.com/wardonne/gopi/web"
 	"github.com/wardonne/gopi/web/binding"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
@@ -17,7 +16,7 @@ import (
 type RouteAction struct {
 	Route
 	handler        string
-	controller     web.IController
+	controller     IController
 	controllerType reflect.Type
 }
 

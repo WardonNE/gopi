@@ -505,15 +505,17 @@ func (request *Request) ClientIP() string {
 func (request *Request) Bind(form validation.IValidateForm, bindings ...binding.Binding) error {
 	if len(bindings) == 0 {
 		bindings = append(bindings, binding.Form)
-		contentType := request.Header("Content-Type").String()
-		if contentType == MIMEJSON {
-			bindings = append(bindings, binding.JSON)
-		} else if contentType == MIMEXML {
-			bindings = append(bindings, binding.XML)
-		} else if contentType == MIMEYAML {
-			bindings = append(bindings, binding.YAML)
-		} else if contentType == MIMETOML {
-			bindings = append(bindings, binding.TOML)
+		if h := request.Header("Content-Type"); h != nil {
+			contentType := h.String()
+			if contentType == MIMEJSON {
+				bindings = append(bindings, binding.JSON)
+			} else if contentType == MIMEXML {
+				bindings = append(bindings, binding.XML)
+			} else if contentType == MIMEYAML {
+				bindings = append(bindings, binding.YAML)
+			} else if contentType == MIMETOML {
+				bindings = append(bindings, binding.TOML)
+			}
 		}
 	}
 	for _, binding := range bindings {

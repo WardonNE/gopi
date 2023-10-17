@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/wardonne/gopi/support/collection/list"
-	"github.com/wardonne/gopi/web"
 	"github.com/wardonne/gopi/web/middleware"
 )
 
@@ -40,6 +39,7 @@ func (group *RouteGroup) Use(middlewares ...middleware.IMiddleware) {
 // Group registers sub route group and returns the sub group instance
 func (group *RouteGroup) Group(prefix string, callback func(group *RouteGroup)) *RouteGroup {
 	routeGroup := &RouteGroup{
+		router: group.router,
 		Prefix: strings.Join([]string{
 			strings.TrimRight(group.Prefix, "/"),
 			strings.TrimLeft(prefix, "/"),
@@ -48,13 +48,15 @@ func (group *RouteGroup) Group(prefix string, callback func(group *RouteGroup)) 
 		Routes:      make([]*RouteHandler, 0),
 		Middlewares: group.Middlewares,
 	}
+	group.RouteGroups = append(group.RouteGroups, routeGroup)
 	callback(routeGroup)
 	return routeGroup
 }
 
 // Controller registers a sub route group with specific controller instance and returns an instance of [RouteController]
-func (group *RouteGroup) Controller(prefix string, controller web.IController, callback func(group *RouteController)) *RouteController {
+func (group *RouteGroup) Controller(prefix string, controller IController, callback func(group *RouteController)) *RouteController {
 	routeGroup := &RouteController{
+		router: group.router,
 		Prefix: strings.Join([]string{
 			strings.TrimRight(group.Prefix, "/"),
 			strings.TrimLeft(prefix, "/"),
@@ -70,7 +72,7 @@ func (group *RouteGroup) Controller(prefix string, controller web.IController, c
 }
 
 // Route registers a handler route to current group and it returns an instance of [RouteHandler]
-func (group *RouteGroup) Route(method, path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) Route(method, path string, handler Handler) *RouteHandler {
 	route := &RouteHandler{
 		Route: Route{
 			router: group.router,
@@ -89,46 +91,46 @@ func (group *RouteGroup) Route(method, path string, handler web.Handler) *RouteH
 }
 
 // HEAD registers a handler route with method [http.MethodHead]
-func (group *RouteGroup) HEAD(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) HEAD(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodHead, path, handler)
 }
 
 // CONNECT registers a handler route with method [http.MethodConnect]
-func (group *RouteGroup) CONNECT(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) CONNECT(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodConnect, path, handler)
 }
 
 // OPTIONS registers a handler route with method [http.MethodOptions]
-func (group *RouteGroup) OPTIONS(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) OPTIONS(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodOptions, path, handler)
 }
 
 // TRACE registers a handler route with method [http.MethodTrace]
-func (group *RouteGroup) TRACE(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) TRACE(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodTrace, path, handler)
 }
 
 // GET registers a handler route with method [http.MethodGet]
-func (group *RouteGroup) GET(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) GET(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodGet, path, handler)
 }
 
 // POST registers a handler route with method [http.MethodPost]
-func (group *RouteGroup) POST(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) POST(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodPost, path, handler)
 }
 
 // PUT registers a handler route with method [http.MethodPut]
-func (group *RouteGroup) PUT(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) PUT(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodPut, path, handler)
 }
 
 // PATCH registers a handler route with method [http.MethodPatch]
-func (group *RouteGroup) PATCH(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) PATCH(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodPatch, path, handler)
 }
 
 // DELETE registers a handler route with method [http.MethodDelete]
-func (group *RouteGroup) DELETE(path string, handler web.Handler) *RouteHandler {
+func (group *RouteGroup) DELETE(path string, handler Handler) *RouteHandler {
 	return group.Route(http.MethodDelete, path, handler)
 }

@@ -7,12 +7,6 @@ import (
 	"github.com/wardonne/gopi/web/context"
 )
 
-// IController interface of controller
-type IController interface {
-	// Init inits controller
-	Init(request *context.Request)
-}
-
 // Controller basic controller implemention
 type Controller struct {
 	*context.Request

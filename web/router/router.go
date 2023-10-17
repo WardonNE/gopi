@@ -6,7 +6,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/wardonne/gopi/support/collection/list"
-	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
 	"github.com/wardonne/gopi/web/middleware/validate"
@@ -29,9 +28,9 @@ func New() *Router {
 			RouteGroups: make([]IRouteGroup, 0),
 			Routes:      make([]*RouteHandler, 0),
 		},
-		HTTPRouter:     httprouter.New(),
-		validateEngine: validation.Default(),
+		HTTPRouter: httprouter.New(),
 	}
+	router.router = router
 	return router
 }
 
@@ -41,8 +40,8 @@ func (router *Router) SetValidateEngine(ve validate.ValidationEngine) *Router {
 	return router
 }
 
-// Run starts the http server
-func (router *Router) Run(addr string) error {
+// Prepare registers all routes into http server
+func (router *Router) Prepare() {
 	if router.routes == nil {
 		router.routes = router.List()
 	}
@@ -51,12 +50,17 @@ func (router *Router) Run(addr string) error {
 			return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 				ctx := r.Context()
 				ctx = libctx.WithValue(ctx, httprouter.ParamsKey, p)
-				r = r.WithContext(ctx)
 				request := context.NewRequest(r, p)
 				resp := route.HandleRequest(request)
 				resp.Send(w, r)
 			}
 		}(route))
 	}
+}
+
+// Run starts the http server
+//
+// # NOTICE: should call Prepare first before calling Run
+func (router *Router) Run(addr string) error {
 	return http.ListenAndServe(addr, router.HTTPRouter)
 }
