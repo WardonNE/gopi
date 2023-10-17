@@ -29,7 +29,7 @@ type WorkerPool struct {
 	stoppedAt time.Time
 
 	mu                 sync.Mutex
-	workers            *maps.HashMap[uuid.UUID, *Worker]
+	workers            *maps.SyncHashMap[uuid.UUID, *Worker]
 	stopChannel        chan struct{}
 	watcherStopChannel chan struct{}
 
@@ -64,7 +64,7 @@ func DefaultWorkerPool(driver driver.DriverInterface) *WorkerPool {
 	wp.createdAt = time.Now()
 	wp.stoppedAt = time.Now()
 	// worker container
-	wp.workers = maps.NewHashMap[uuid.UUID, *Worker]()
+	wp.workers = maps.NewSyncHashMap[uuid.UUID, *Worker]()
 
 	wp.driver = driver
 

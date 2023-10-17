@@ -91,7 +91,7 @@ func TestWorkerPool_Release(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		j := i
 		assert.True(t, wp.Dispatch(&testjob{callback: func() error {
-			time.Sleep(time.Second)
+			time.Sleep(2 * time.Second)
 			mu.Lock()
 			defer mu.Unlock()
 			outputs = append(outputs, j)
