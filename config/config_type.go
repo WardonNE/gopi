@@ -1,5 +1,6 @@
 package config
 
+// Config extension
 const (
 	JSON       = "json"
 	TOML       = "toml"
