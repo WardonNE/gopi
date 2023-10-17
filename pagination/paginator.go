@@ -1,6 +1,6 @@
 package pagination
 
-import "github.com/wardonne/gopi/utils"
+import "github.com/wardonne/gopi/support/utils"
 
 func implements[T any]() {
 	var _ IPaginator[T] = new(Paginator[T])

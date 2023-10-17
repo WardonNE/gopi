@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 	"github.com/wardonne/gopi/web/context/formdata"
 )
 

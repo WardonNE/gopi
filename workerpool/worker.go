@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/wardonne/gopi/retry"
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 	"github.com/wardonne/gopi/workerpool/driver"
 	"github.com/wardonne/gopi/workerpool/event"
 	"github.com/wardonne/gopi/workerpool/job"

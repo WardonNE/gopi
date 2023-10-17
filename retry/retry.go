@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 )
 
 var (

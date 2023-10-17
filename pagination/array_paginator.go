@@ -1,6 +1,6 @@
 package pagination
 
-import "github.com/wardonne/gopi/utils"
+import "github.com/wardonne/gopi/support/utils"
 
 // ArrayPaginator is a paginator based on an array, it extends from [Paginator]
 //

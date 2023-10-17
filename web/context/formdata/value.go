@@ -3,7 +3,7 @@ package formdata
 import (
 	"time"
 
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 )
 
 // Value is a simple superset of string that provides type convertion methods

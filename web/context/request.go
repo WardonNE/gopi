@@ -9,7 +9,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/wardonne/gopi/support/maps"
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web/binding"
 	"github.com/wardonne/gopi/web/context/formdata"

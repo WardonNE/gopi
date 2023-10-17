@@ -3,7 +3,7 @@ package pagination
 import (
 	"sync"
 
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 )
 
 // LazyPaginator is a paginator with lazy load, it extends from [Paginator]

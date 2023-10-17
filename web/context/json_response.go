@@ -3,7 +3,7 @@ package context
 import (
 	"net/http"
 
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 )
 
 // JSONResponse used to response json format data

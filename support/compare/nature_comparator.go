@@ -1,7 +1,7 @@
 package compare
 
 import (
-	"github.com/wardonne/gopi/utils"
+	"github.com/wardonne/gopi/support/utils"
 	"golang.org/x/exp/constraints"
 )
 
