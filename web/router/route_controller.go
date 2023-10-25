@@ -20,11 +20,12 @@ type IController interface {
 type RouteController struct {
 	router *Router
 
-	Prefix         string
-	Routes         []*RouteAction
-	Middlewares    *list.ArrayList[middleware.IMiddleware]
-	Controller     IController
-	ControllerType reflect.Type
+	Prefix             string
+	RouteGroups        []IRouteGroup
+	Routes             []*RouteAction
+	Middlewares        *list.ArrayList[middleware.IMiddleware]
+	ControllerInstance IController
+	ControllerType     reflect.Type
 }
 
 // List lists all routes in current group
@@ -33,12 +34,51 @@ func (group *RouteController) List() []IRoute {
 	for _, route := range group.Routes {
 		routes = append(routes, route)
 	}
+	for _, routeGroup := range group.RouteGroups {
+		routes = append(routes, routeGroup.List()...)
+	}
 	return routes
 }
 
 // Use sets middlewares to current group
 func (group *RouteController) Use(middlewares ...middleware.IMiddleware) {
 	group.Middlewares.AddAll(middlewares...)
+}
+
+// Group registes a sub group of routes to current route
+func (group *RouteController) Group(prefix string, callback func(group *RouteController)) *RouteController {
+	routeGroup := &RouteController{
+		router: group.router,
+		Prefix: strings.Join([]string{
+			strings.TrimRight(group.Prefix, "/"),
+			strings.TrimLeft(prefix, "/"),
+		}, "/"),
+		Routes:             make([]*RouteAction, 0),
+		Middlewares:        group.Middlewares,
+		ControllerInstance: group.ControllerInstance,
+		ControllerType:     group.ControllerType,
+	}
+	callback(routeGroup)
+	group.RouteGroups = append(group.RouteGroups, routeGroup)
+	return routeGroup
+}
+
+// Controller registes a sub route group with specific controller instance and returns an instance of [RouteController]
+func (group *RouteController) Controller(prefix string, controller IController, callback func(group *RouteController)) *RouteController {
+	routeGroup := &RouteController{
+		router: group.router,
+		Prefix: strings.Join([]string{
+			strings.TrimRight(group.Prefix, "/"),
+			strings.TrimLeft(prefix, "/"),
+		}, "/"),
+		Routes:             make([]*RouteAction, 0),
+		Middlewares:        group.Middlewares,
+		ControllerInstance: controller,
+		ControllerType:     reflect.TypeOf(controller),
+	}
+	callback(routeGroup)
+	group.RouteGroups = append(group.RouteGroups, routeGroup)
+	return routeGroup
 }
 
 // Route registers controller's action to current route group and returns an instance of [RouteAction]
@@ -93,7 +133,7 @@ func (group *RouteController) Route(method, path, handler string) *RouteAction {
 			middlewares: group.Middlewares,
 		},
 		handler:        handler,
-		controller:     group.Controller,
+		controller:     group.ControllerInstance,
 		controllerType: group.ControllerType,
 	}
 	group.Routes = append(group.Routes, action)

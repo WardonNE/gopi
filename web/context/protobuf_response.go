@@ -15,9 +15,8 @@ type ProtobufResponse struct {
 // SetContent sets response body content
 //
 // NOTICE: data should be [proto.Message]
-func (protobufResponse *ProtobufResponse) SetContent(data any) IResponse {
+func (protobufResponse *ProtobufResponse) SetContent(data any) {
 	protobufResponse.data = data
-	return protobufResponse
 }
 
 // Send sends the response

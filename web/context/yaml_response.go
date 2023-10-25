@@ -13,9 +13,8 @@ type YAMLResponse struct {
 }
 
 // SetContent sets response body content
-func (yamlResponse *YAMLResponse) SetContent(data any) IResponse {
+func (yamlResponse *YAMLResponse) SetContent(data any) {
 	yamlResponse.data = data
-	return yamlResponse
 }
 
 // Send sends the response

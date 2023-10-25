@@ -2,14 +2,18 @@ package router
 
 import (
 	libctx "context"
+	"errors"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/wardonne/gopi/contract"
 	"github.com/wardonne/gopi/support/collection/list"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
 	"github.com/wardonne/gopi/web/middleware/validate"
 )
+
+var ErrValidateEngineEmpty = errors.New("validate engine is nil, please call SetValidateEngine to set it first")
 
 // Router http router
 type Router struct {
@@ -31,6 +35,7 @@ func New() *Router {
 		HTTPRouter: httprouter.New(),
 	}
 	router.router = router
+	router.HTTPRouter.PanicHandler = defaultErrorHandler
 	return router
 }
 
@@ -38,6 +43,24 @@ func New() *Router {
 func (router *Router) SetValidateEngine(ve validate.ValidationEngine) *Router {
 	router.validateEngine = ve
 	return router
+}
+
+// SetErrorHandler sets custom error handler
+func (router *Router) SetErrorHandler(handler contract.ErrorHandler) *Router {
+	router.HTTPRouter.PanicHandler = func(w http.ResponseWriter, r *http.Request, i interface{}) {
+		if e, ok := i.(error); ok {
+			resp := handler.Render(r, e)
+			resp.Send(w, r)
+		} else {
+			defaultErrorHandler(w, r, i)
+		}
+	}
+	return router
+}
+
+// Registe used to registe routes by custom callback
+func (router *Router) Registe(register Register) {
+	register(router)
 }
 
 // Prepare registers all routes into http server

@@ -32,6 +32,9 @@ func (route *RouteHandler) Use(middlewares ...middleware.IMiddleware) IRoute {
 
 // Validate binds validation form to the route
 func (route *RouteHandler) Validate(form validation.IValidateForm, bindings ...binding.Binding) IRoute {
+	if route.router.validateEngine == nil {
+		panic(ErrValidateEngineEmpty)
+	}
 	formType := reflect.TypeOf(form)
 	if formType.Kind() != reflect.Ptr {
 		panic("Non-ptr: " + formType.String())

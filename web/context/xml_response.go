@@ -12,9 +12,8 @@ type XMLResponse struct {
 }
 
 // SetContent sets response body content
-func (xmlResponse *XMLResponse) SetContent(data any) IResponse {
+func (xmlResponse *XMLResponse) SetContent(data any) {
 	xmlResponse.data = data
-	return xmlResponse
 }
 
 // Send sends the response

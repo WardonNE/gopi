@@ -13,9 +13,8 @@ type TOMLResponse struct {
 }
 
 // SetContent sets response body content
-func (tomlResponse *TOMLResponse) SetContent(data any) IResponse {
+func (tomlResponse *TOMLResponse) SetContent(data any) {
 	tomlResponse.data = data
-	return tomlResponse
 }
 
 // Send sends the response

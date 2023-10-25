@@ -13,9 +13,8 @@ type JSONResponse struct {
 }
 
 // SetContent sets response body content
-func (jsonResponse *JSONResponse) SetContent(data any) IResponse {
+func (jsonResponse *JSONResponse) SetContent(data any) {
 	jsonResponse.data = data
-	return jsonResponse
 }
 
 // Send sends the response

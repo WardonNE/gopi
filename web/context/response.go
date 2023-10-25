@@ -11,18 +11,18 @@ var _ IResponse = new(Response)
 // IResponse the response interface
 type IResponse interface {
 	// SetStatusCode sets the response http status code
-	SetStatusCode(statusCode int) IResponse
+	SetStatusCode(statusCode int)
 	// StatusCode gets the response http status code
 	StatusCode() int
 	// SetContent sets the response body content
-	SetContent(content any) IResponse
+	SetContent(content any)
 	// Content gets the response body content
 	Content() any
 	// SetHeader sets the response header, if replace is true, it will replace the existing header,
 	// and if replace is false, it appends the new value into existing header
-	SetHeader(key, header string, replace ...bool) IResponse
+	SetHeader(key, header string, replace ...bool)
 	// SetHeaders sets headers map to the response
-	SetHeaders(headers map[string]string) IResponse
+	SetHeaders(headers map[string]string)
 	// HasHeader returns if the specific key is exist
 	HasHeader(key string) bool
 	// Header returns header value of specific header
@@ -30,7 +30,7 @@ type IResponse interface {
 	// Headers returns all headers as [http.Header]
 	Headers() http.Header
 	// SetCookie sets cookie to response
-	SetCookie(cookie *http.Cookie) IResponse
+	SetCookie(cookie *http.Cookie)
 	// Cookies returns all response cookies
 	Cookies() []*http.Cookie
 	// Send sends the response
@@ -59,12 +59,11 @@ func NewResponse(statusCode int, content ...any) *Response {
 }
 
 // SetStatusCode sets the response http status code
-func (response *Response) SetStatusCode(statusCode int) IResponse {
+func (response *Response) SetStatusCode(statusCode int) {
 	if statusCode < 100 || statusCode > 600 {
 		panic(fmt.Errorf("HTTP status code `%d` is invalid", statusCode))
 	}
 	response.statusCode = statusCode
-	return response
 }
 
 // StatusCode gets the response http status code
@@ -73,9 +72,8 @@ func (response *Response) StatusCode() int {
 }
 
 // SetContent sets the response body content
-func (response *Response) SetContent(content any) IResponse {
+func (response *Response) SetContent(content any) {
 	response.content = content
-	return response
 }
 
 // Content gets the response body content
@@ -85,21 +83,19 @@ func (response *Response) Content() any {
 
 // SetHeader sets the response header, if replace is true, it will replace the existing header,
 // and if replace is false, it appends the new value into existing header
-func (response *Response) SetHeader(key, value string, replace ...bool) IResponse {
+func (response *Response) SetHeader(key, value string, replace ...bool) {
 	if len(replace) == 0 || (len(replace) > 0 && replace[0]) {
 		response.headers.Set(key, value)
 	} else {
 		response.headers.Add(key, value)
 	}
-	return response
 }
 
 // SetHeaders sets headers map to the response
-func (response *Response) SetHeaders(headers map[string]string) IResponse {
+func (response *Response) SetHeaders(headers map[string]string) {
 	for header, value := range headers {
 		response.headers.Set(header, value)
 	}
-	return response
 }
 
 // HasHeader returns if the specific key is exist
@@ -119,9 +115,8 @@ func (response *Response) Headers() http.Header {
 }
 
 // SetCookie sets cookie to response
-func (response *Response) SetCookie(cookie *http.Cookie) IResponse {
+func (response *Response) SetCookie(cookie *http.Cookie) {
 	response.cookies = append(response.cookies, cookie)
-	return response
 }
 
 // Cookies returns all response cookies

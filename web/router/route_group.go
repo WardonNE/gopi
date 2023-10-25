@@ -61,10 +61,10 @@ func (group *RouteGroup) Controller(prefix string, controller IController, callb
 			strings.TrimRight(group.Prefix, "/"),
 			strings.TrimLeft(prefix, "/"),
 		}, "/"),
-		Routes:         make([]*RouteAction, 0),
-		Middlewares:    group.Middlewares,
-		Controller:     controller,
-		ControllerType: reflect.TypeOf(controller),
+		Routes:             make([]*RouteAction, 0),
+		Middlewares:        group.Middlewares,
+		ControllerInstance: controller,
+		ControllerType:     reflect.TypeOf(controller),
 	}
 	callback(routeGroup)
 	group.RouteGroups = append(group.RouteGroups, routeGroup)
