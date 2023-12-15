@@ -73,15 +73,19 @@ func (group *RouteGroup) Controller(prefix string, controller IController, callb
 
 // Route registers a handler route to current group and it returns an instance of [RouteHandler]
 func (group *RouteGroup) Route(method, path string, handler Handler) *RouteHandler {
+	pathWithPrefix := strings.Join([]string{
+		strings.TrimRight(group.Prefix, "/"),
+		strings.TrimLeft(path, "/"),
+	}, "/")
+	if path == "" {
+		pathWithPrefix = pathWithPrefix[:len(pathWithPrefix)-1]
+	}
 	route := &RouteHandler{
 		Route: Route{
-			router: group.router,
-			name:   "",
-			method: method,
-			path: strings.Join([]string{
-				strings.TrimRight(group.Prefix, "/"),
-				strings.TrimLeft(path, "/"),
-			}, "/"),
+			router:      group.router,
+			name:        "",
+			method:      method,
+			path:        pathWithPrefix,
 			middlewares: group.Middlewares,
 		},
 		handler: handler,

@@ -43,6 +43,10 @@ func New(engine ValidationEngine, form validation.IValidateForm, bindings ...bin
 				panic(err)
 			}
 		}
+		customValidations := form.CustomValidations()
+		for _, customValidation := range customValidations {
+			customValidation(form)
+		}
 		return next(request)
 	}
 }

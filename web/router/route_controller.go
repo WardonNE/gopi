@@ -121,15 +121,19 @@ func (group *RouteController) Route(method, path, handler string) *RouteAction {
 		panic("invalid return type, should be an implemention of context.IResponse")
 	}
 
+	pathWithPrefix := strings.Join([]string{
+		strings.TrimRight(group.Prefix, "/"),
+		strings.TrimLeft(path, "/"),
+	}, "/")
+	if path == "" {
+		pathWithPrefix = pathWithPrefix[:len(pathWithPrefix)-1]
+	}
 	action := &RouteAction{
 		Route: Route{
-			router: group.router,
-			name:   "",
-			method: method,
-			path: strings.Join([]string{
-				strings.TrimRight(group.Prefix, "/"),
-				strings.TrimLeft(path, "/"),
-			}, "/"),
+			router:      group.router,
+			name:        "",
+			method:      method,
+			path:        pathWithPrefix,
 			middlewares: group.Middlewares,
 		},
 		handler:        handler,

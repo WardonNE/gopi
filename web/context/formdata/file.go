@@ -58,6 +58,15 @@ func (uploadedFile *UploadedFile) Extension() string {
 	return uploadedFile.mime.Extension()
 }
 
+// Size returns the size of the uploaded file
+func (uploadedFile *UploadedFile) Size() int64 {
+	return uploadedFile.fileHeader.Size
+}
+
+func (uploadedFile *UploadedFile) File() multipart.File {
+	return uploadedFile.file
+}
+
 // Content returns the content of the uploaded file
 func (uploadedFile *UploadedFile) Content() ([]byte, error) {
 	if uploadedFile.content != nil {

@@ -7,3 +7,5 @@ type ICustomValidateRule interface {
 	Validate(fl validator.FieldLevel) bool
 	SkipNull() bool
 }
+
+type CustomValidation = func(form IValidateForm)

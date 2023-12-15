@@ -6,6 +6,7 @@ type IValidateForm interface {
 	Fails() bool
 	Errors() map[string][]string
 	AddError(key, message string)
+	CustomValidations() []CustomValidation
 }
 
 type ValidateForm struct {
@@ -47,4 +48,8 @@ func (form *ValidateForm) AddError(key, message string) {
 		}
 		form.messages[key] = append(form.messages[key], strings.TrimSpace(message))
 	}
+}
+
+func (form *ValidateForm) CustomValidations() []CustomValidation {
+	return []CustomValidation{}
 }

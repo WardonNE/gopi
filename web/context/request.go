@@ -515,6 +515,8 @@ func (request *Request) Bind(form validation.IValidateForm, bindings ...binding.
 				bindings = append(bindings, binding.YAML)
 			} else if contentType == MIMETOML {
 				bindings = append(bindings, binding.TOML)
+			} else if contentType == MIMEMultipartForm || contentType == MIMEPOSTForm {
+				bindings = append(bindings, binding.Form)
 			}
 		}
 	}

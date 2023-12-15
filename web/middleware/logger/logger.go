@@ -21,11 +21,11 @@ type Information struct {
 }
 
 // New creates a logger middleware from specific write function
-func New(write func(Information)) middleware.IMiddleware {
+func New(writer func(Information)) middleware.IMiddleware {
 	return func(request *context.Request, next pipeline.Next[*context.Request, context.IResponse]) context.IResponse {
 		s := time.Now()
 		resp := next(request)
-		write(Information{
+		writer(Information{
 			Status:    resp.StatusCode(),
 			Method:    request.Method(),
 			Path:      request.Path(),
