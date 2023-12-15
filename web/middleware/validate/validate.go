@@ -30,9 +30,9 @@ func New(engine ValidationEngine, form validation.IValidateForm, bindings ...bin
 		if err := engine.Struct(form); err != nil {
 			if errs, ok := err.(validator.ValidationErrors); ok {
 				if translator != nil {
-					messages := errs.Translate(translator)
-					for key, message := range messages {
-						form.AddError(key, message)
+					for _, err := range errs {
+						message := err.Translate(translator)
+						form.AddError(err.Field(), message)
 					}
 				} else {
 					for _, err := range errs {

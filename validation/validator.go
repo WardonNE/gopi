@@ -46,6 +46,11 @@ func (v *Validator) WithCustomRules(rules ...ICustomValidateRule) *Validator {
 	return v
 }
 
+func (v *Validator) RegisterTagNameFunc(fn validator.TagNameFunc) *Validator {
+	v.Validate.RegisterTagNameFunc(fn)
+	return v
+}
+
 func (v *Validator) Translator(locale string) ut.Translator {
 	translator, _ := v.uni.GetTranslator(locale)
 	return translator

@@ -1,6 +1,8 @@
 package validation
 
 import (
+	"reflect"
+
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/wardonne/gopi/validation/translator"
@@ -10,7 +12,13 @@ var v = New().WithTranslator(
 	new(translator.ENTranslator),
 	new(translator.ENTranslator),
 	new(translator.ZHTranslator),
-)
+).RegisterTagNameFunc(func(field reflect.StructField) string {
+	label := field.Tag.Get("label")
+	if label == "" {
+		return field.Name
+	}
+	return label
+})
 
 func Default() *Validator {
 	return v
