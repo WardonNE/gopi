@@ -3,6 +3,7 @@ package router
 import (
 	libctx "context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -48,10 +49,17 @@ func (router *Router) SetValidateEngine(ve validation.Engine) *Router {
 // SetErrorHandler sets custom error handler
 func (router *Router) SetErrorHandler(handler contract.ErrorHandler) *Router {
 	router.HTTPRouter.PanicHandler = func(w http.ResponseWriter, r *http.Request, i interface{}) {
-		if e, ok := i.(error); ok {
-			resp := handler.Render(r, e)
+		switch v := i.(type) {
+		case error:
+			resp := handler.Render(r, v)
 			resp.Send(w, r)
-		} else {
+		case string:
+			resp := handler.Render(r, errors.New(v))
+			resp.Send(w, r)
+		case fmt.Stringer:
+			resp := handler.Render(r, errors.New(v.String()))
+			resp.Send(w, r)
+		default:
 			defaultErrorHandler(w, r, i)
 		}
 	}

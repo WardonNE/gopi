@@ -19,12 +19,12 @@ func New(f validation.IValidateForm, bindings ...binding.Binding) middleware.IMi
 			panic(err)
 		}
 		form.SetEngine(f.Engine())
-		form.BindFormInstance(form)
+		// form.BindFormInstance(form)
 		locale := request.Header("Accept-Language", "en")
 		form.SetLocale(locale.String())
 		if form.AutoValidate() {
 			if form.BeforeValidate() {
-				form.Validate()
+				form.Validate(form)
 			} else {
 				form.AddError("onBeforeValidate", "BeforeValidate returned false")
 			}

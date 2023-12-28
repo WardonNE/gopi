@@ -3,7 +3,7 @@ package query
 import (
 	"errors"
 
-	"github.com/wardonne/gopi/model/pagination"
+	"github.com/wardonne/gopi/database/pagination"
 	"github.com/wardonne/gopi/support/collection/list"
 	"gorm.io/gorm"
 )

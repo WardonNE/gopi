@@ -21,45 +21,8 @@ type IValidateForm interface {
 	Engine() Engine
 	// AutoValidate should auth run validate when a request entered
 	AutoValidate() bool
-	// BindFormInstance this method is used to bind child form instance to parent form instance
-	// Example:
-	//  type ParentForm struct {
-	//    form IValidateForm
-	//    engine Engine
-	//  }
-	//
-	//  func (f *ParentForm) BindFormInstance(form IValidateForm) {
-	//    f.form = form
-	//  }
-	//
-	//  func (f *ParentForm) AutoValidate() bool {
-	//    return true
-	//  }
-	//
-	//  func (f *ParentForm) Validate() {
-	//    f.form.Validate()
-	//  }
-	//
-	//  func (f *ParentForm) SetEngine(engine Engine) {}
-	//
-	//  func (f *ParentForm) Engine() Engine {
-	//    return f.engine
-	//  }
-	//
-	//  // other methods of ParentForm to implements IValidateForm
-	//
-	//  type ChildForm struct {
-	//    ParentForm
-	//
-	//    Name string `validate:"required"`
-	//  }
-	//
-	//  form := new(ChildForm)
-	//  form.BindFormInstance(form)
-	//  form.Validate()
-	BindFormInstance(form IValidateForm)
 	// Validate run validate
-	Validate()
+	Validate(form IValidateForm)
 	// BeforeValidate before validate event
 	BeforeValidate() bool
 	// AfterValidate after validate event
@@ -106,18 +69,13 @@ func (f *Form) Locale() string {
 	return f.locale
 }
 
-func (f *Form) BindFormInstance(form IValidateForm) {
-	f.form = form
-}
-
 func (f *Form) BeforeValidate() bool {
 	return true
 }
 
 func (f *Form) AfterValidate() {}
 
-func (f *Form) Validate() {
-	form := f.form
+func (f *Form) Validate(form IValidateForm) {
 	err := f.engine.Struct(form)
 	if err == nil {
 		return
