@@ -41,7 +41,8 @@ func (action *RouteAction) Validate(form validation.IValidateForm, bindings ...b
 	if formType.Kind() != reflect.Ptr {
 		panic("Non-ptr: " + formType.String())
 	}
-	action.validation = validate.New(action.router.validateEngine, form, bindings...)
+	form.SetEngine(action.router.validateEngine)
+	action.validation = validate.New(form, bindings...)
 	return action
 }
 

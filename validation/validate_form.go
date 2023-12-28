@@ -1,23 +1,146 @@
 package validation
 
-import "strings"
+import (
+	"strings"
 
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+)
+
+// Engine validation engine interface
+type Engine interface {
+	Translator(locale string) ut.Translator
+	Struct(any) error
+}
+
+// IValidateForm validate form interface
 type IValidateForm interface {
+	// SetEngine set validation engine
+	SetEngine(engine Engine)
+	// Engine get validation engine
+	Engine() Engine
+	// AutoValidate should auth run validate when a request entered
+	AutoValidate() bool
+	// BindFormInstance this method is used to bind child form instance to parent form instance
+	// Example:
+	//  type ParentForm struct {
+	//    form IValidateForm
+	//    engine Engine
+	//  }
+	//
+	//  func (f *ParentForm) BindFormInstance(form IValidateForm) {
+	//    f.form = form
+	//  }
+	//
+	//  func (f *ParentForm) AutoValidate() bool {
+	//    return true
+	//  }
+	//
+	//  func (f *ParentForm) Validate() {
+	//    f.form.Validate()
+	//  }
+	//
+	//  func (f *ParentForm) SetEngine(engine Engine) {}
+	//
+	//  func (f *ParentForm) Engine() Engine {
+	//    return f.engine
+	//  }
+	//
+	//  // other methods of ParentForm to implements IValidateForm
+	//
+	//  type ChildForm struct {
+	//    ParentForm
+	//
+	//    Name string `validate:"required"`
+	//  }
+	//
+	//  form := new(ChildForm)
+	//  form.BindFormInstance(form)
+	//  form.Validate()
+	BindFormInstance(form IValidateForm)
+	// Validate run validate
+	Validate()
+	// BeforeValidate before validate event
+	BeforeValidate() bool
+	// AfterValidate after validate event
+	AfterValidate()
+	// SetLocale set locale
+	SetLocale(locale string)
+	// Locale get locale
+	Locale() string
+	// Fails returns whether the validation failed
 	Fails() bool
+	// Errors returns error messages
 	Errors() map[string][]string
+	// AddError add error message
 	AddError(key, message string)
+	// CustomValidations custom validations
 	CustomValidations() []CustomValidation
 }
 
-type ValidateForm struct {
+type Form struct {
 	messages map[string][]string
+
+	locale string
+	engine Engine
+	form   IValidateForm
 }
 
-func (form *ValidateForm) Empty() bool {
-	if len(form.messages) == 0 {
+func (f *Form) SetEngine(engine Engine) {
+	f.engine = engine
+}
+
+func (f *Form) Engine() Engine {
+	return f.engine
+}
+
+func (f *Form) AutoValidate() bool {
+	return true
+}
+
+func (f *Form) SetLocale(locale string) {
+	f.locale = locale
+}
+
+func (f *Form) Locale() string {
+	return f.locale
+}
+
+func (f *Form) BindFormInstance(form IValidateForm) {
+	f.form = form
+}
+
+func (f *Form) BeforeValidate() bool {
+	return true
+}
+
+func (f *Form) AfterValidate() {}
+
+func (f *Form) Validate() {
+	form := f.form
+	err := f.engine.Struct(form)
+	if err == nil {
+		return
+	}
+	errs, ok := err.(validator.ValidationErrors)
+	if !ok {
+		panic(err)
+	}
+	translator := form.Engine().Translator(form.Locale())
+	for _, err := range errs {
+		form.AddError(err.Field(), err.Translate(translator))
+	}
+	customValidations := form.CustomValidations()
+	for _, customValidation := range customValidations {
+		customValidation(form)
+	}
+}
+
+func (f *Form) Empty() bool {
+	if len(f.messages) == 0 {
 		return true
 	}
-	for _, msgs := range form.messages {
+	for _, msgs := range f.messages {
 		if len(msgs) > 0 {
 			return false
 		}
@@ -25,31 +148,31 @@ func (form *ValidateForm) Empty() bool {
 	return true
 }
 
-func (form *ValidateForm) Fails() bool {
-	return !form.Empty()
+func (f *Form) Fails() bool {
+	return !f.Empty()
 }
 
-func (form *ValidateForm) Errors() map[string][]string {
-	return form.messages
+func (f *Form) Errors() map[string][]string {
+	return f.messages
 }
 
-func (form *ValidateForm) AddError(key, message string) {
-	if form.messages == nil {
-		form.messages = make(map[string][]string)
+func (f *Form) AddError(key, message string) {
+	if f.messages == nil {
+		f.messages = make(map[string][]string)
 	}
-	msgs := form.messages[key]
+	msgs := f.messages[key]
 	if len(msgs) == 0 {
-		form.messages[key] = append(form.messages[key], strings.TrimSpace(message))
+		f.messages[key] = append(f.messages[key], strings.TrimSpace(message))
 	} else {
 		for _, msg := range msgs {
 			if msg == message {
 				return
 			}
 		}
-		form.messages[key] = append(form.messages[key], strings.TrimSpace(message))
+		f.messages[key] = append(f.messages[key], strings.TrimSpace(message))
 	}
 }
 
-func (form *ValidateForm) CustomValidations() []CustomValidation {
+func (f *Form) CustomValidations() []CustomValidation {
 	return []CustomValidation{}
 }

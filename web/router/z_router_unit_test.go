@@ -171,7 +171,7 @@ func TestRouter_HandlerWithMiddleware(t *testing.T) {
 }
 
 type testform struct {
-	validation.ValidateForm
+	validation.Form
 	Name *string `json:"name"`
 }
 

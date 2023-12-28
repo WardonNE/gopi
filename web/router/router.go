@@ -8,9 +8,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/wardonne/gopi/contract"
 	"github.com/wardonne/gopi/support/collection/list"
+	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
-	"github.com/wardonne/gopi/web/middleware/validate"
 )
 
 var ErrValidateEngineEmpty = errors.New("validate engine is nil, please call SetValidateEngine to set it first")
@@ -20,7 +20,7 @@ type Router struct {
 	*RouteGroup
 	HTTPRouter     *httprouter.Router
 	routes         []IRoute
-	validateEngine validate.ValidationEngine
+	validateEngine validation.Engine
 }
 
 // New creates a new [Router] instance
@@ -40,7 +40,7 @@ func New() *Router {
 }
 
 // SetValidateEngine sets custom validate engine
-func (router *Router) SetValidateEngine(ve validate.ValidationEngine) *Router {
+func (router *Router) SetValidateEngine(ve validation.Engine) *Router {
 	router.validateEngine = ve
 	return router
 }
