@@ -475,8 +475,10 @@ func (request *Request) Header(key string, defaultValue ...string) *formdata.Val
 //
 // if the specific key is not exist, the second return value will be false
 func (request *Request) HeaderArray(key string) (formdata.Values, bool) {
-	if headers, exists := request.Request.Header[key]; exists {
-		return formdata.NewValues(headers), true
+	for k, headers := range request.Request.Header {
+		if strings.ToUpper(k) == strings.ToUpper(key) {
+			return formdata.NewValues(headers), true
+		}
 	}
 	return formdata.NewValues([]string{}), false
 }

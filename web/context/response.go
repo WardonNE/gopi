@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 var _ IResponse = new(Response)
@@ -100,8 +101,12 @@ func (response *Response) SetHeaders(headers map[string]string) {
 
 // HasHeader returns if the specific key is exist
 func (response *Response) HasHeader(key string) bool {
-	h, ok := response.headers[key]
-	return ok && len(h) > 0
+	for k, _ := range response.headers {
+		if strings.ToUpper(k) == strings.ToUpper(key) {
+			return true
+		}
+	}
+	return false
 }
 
 // Header returns header value of specific header
