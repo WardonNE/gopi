@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/wardonne/gopi/contract"
@@ -12,6 +13,7 @@ import (
 	"github.com/wardonne/gopi/validation"
 	"github.com/wardonne/gopi/web/context"
 	"github.com/wardonne/gopi/web/middleware"
+	"github.com/wardonne/gopi/web/middleware/cors"
 )
 
 var ErrValidateEngineEmpty = errors.New("validate engine is nil, please call SetValidateEngine to set it first")
@@ -22,6 +24,7 @@ type Router struct {
 	HTTPRouter     *httprouter.Router
 	routes         []IRoute
 	validateEngine validation.Engine
+	corsOptions    *cors.CORSOptions
 }
 
 // New creates a new [Router] instance
@@ -37,6 +40,12 @@ func New() *Router {
 	}
 	router.router = router
 	router.HTTPRouter.PanicHandler = defaultErrorHandler
+	return router
+}
+
+// SetCORS sets cors configs
+func (router *Router) SetCORS(options *cors.CORSOptions) *Router {
+	router.corsOptions = options
 	return router
 }
 
@@ -71,8 +80,10 @@ func (router *Router) Registe(register Register) {
 	register(router)
 }
 
-// Prepare registers all routes into http server
-func (router *Router) Prepare() {
+// Run starts the http server
+//
+// # NOTICE: should call Prepare first before calling Run
+func (router *Router) Run(addr string) error {
 	if router.routes == nil {
 		router.routes = router.List()
 	}
@@ -87,11 +98,28 @@ func (router *Router) Prepare() {
 			}
 		}(route))
 	}
-}
-
-// Run starts the http server
-//
-// # NOTICE: should call Prepare first before calling Run
-func (router *Router) Run(addr string) error {
+	if router.corsOptions != nil {
+		router.HTTPRouter.HandleOPTIONS = true
+		router.HTTPRouter.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Credentials", fmt.Sprintf("%v", router.corsOptions.AllowCredentials))
+			if len(router.corsOptions.AllowHeaders) > 0 {
+				w.Header().Set("Access-Control-Allow-Headers", strings.Join(router.corsOptions.AllowHeaders, ","))
+			}
+			if len(router.corsOptions.AllowMethods) > 0 {
+				w.Header().Set("Access-Control-Request-Method", strings.Join(router.corsOptions.AllowMethods, ","))
+			} else {
+				w.Header().Set("Access-Control-Request-Method", w.Header().Get("Allow"))
+			}
+			if router.corsOptions.AllowOrigin == "" {
+				w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+			} else {
+				w.Header().Set("Access-Control-Allow-Origin", router.corsOptions.AllowOrigin)
+			}
+			if len(router.corsOptions.ExposeHeaders) > 0 {
+				w.Header().Set("Access-Control-Expose-Headers", strings.Join(router.corsOptions.ExposeHeaders, ","))
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+	}
 	return http.ListenAndServe(addr, router.HTTPRouter)
 }

@@ -66,7 +66,6 @@ func TestRouter_Handler(t *testing.T) {
 		group.TRACE("handler", handler).AS("TraceHandler")
 	})
 
-	r.Prepare()
 	rr := r.HTTPRouter
 	methods := []string{
 		http.MethodGet,
@@ -133,7 +132,6 @@ func TestRouter_HandlerWithMiddleware(t *testing.T) {
 		group.TRACE("handler", handler).Use(mw2).AS("TraceHandler")
 	}).Use(mw1)
 
-	r.Prepare()
 	rr := r.HTTPRouter
 	methods := []string{
 		http.MethodGet,
@@ -227,7 +225,6 @@ func TestRouter_HandlerWithValidation(t *testing.T) {
 		group.TRACE("handler", handler).AS("TraceHandler").Validate(form)
 	})
 
-	r.Prepare()
 	rr := r.HTTPRouter
 	methods := []string{
 		http.MethodGet,
@@ -285,7 +282,6 @@ func TestRouter_Action(t *testing.T) {
 		group.TRACE("handler", "Index").AS("TraceAction")
 	})
 
-	r.Prepare()
 	rr := r.HTTPRouter
 	methods := []string{
 		http.MethodGet,
@@ -346,7 +342,6 @@ func TestRouter_ActionWithMiddleware(t *testing.T) {
 		group.TRACE("handler", "Index").AS("TraceAction").Use(mw2)
 	}).Use(mw1)
 
-	r.Prepare()
 	rr := r.HTTPRouter
 	methods := []string{
 		http.MethodGet,
@@ -399,7 +394,6 @@ func TestRouter_ActionWithValidation(t *testing.T) {
 		group.TRACE("handler", "Valid").AS("TraceAction").Validate(form)
 	})
 
-	r.Prepare()
 	rr := r.HTTPRouter
 	methods := []string{
 		http.MethodGet,

@@ -15,7 +15,6 @@ func BenchmarkRouter_Handler(b *testing.B) {
 	r.GET("/get", func(request *context.Request) context.IResponse {
 		return context.NewResponse(200, "Hello World")
 	})
-	r.Prepare()
 	rr := r.HTTPRouter
 	b.ResetTimer()
 	b.RunParallel(func(p *testing.PB) {
@@ -33,7 +32,6 @@ func BenchmarkRouter_HandlerWithValidate(b *testing.B) {
 	r.POST("/post", func(request *context.Request) context.IResponse {
 		return context.NewResponse(200, request.Validated().(*testform).Name)
 	}).Validate(new(testform), binding.JSON)
-	r.Prepare()
 	rr := r.HTTPRouter
 	b.ResetTimer()
 	b.RunParallel(func(p *testing.PB) {
@@ -50,7 +48,6 @@ func BenchmarkRouter_Action(b *testing.B) {
 	r.Controller("api", new(testcontroller), func(group *RouteController) {
 		group.GET("get", "Index")
 	})
-	r.Prepare()
 	rr := r.HTTPRouter
 	b.ResetTimer()
 	b.RunParallel(func(p *testing.PB) {
@@ -68,7 +65,6 @@ func BenchmarkRouter_ActionWithValidate(b *testing.B) {
 	r.Controller("api", new(testcontroller), func(group *RouteController) {
 		group.POST("post", "Valid").Validate(new(testform), binding.JSON)
 	})
-	r.Prepare()
 	rr := r.HTTPRouter
 	b.ResetTimer()
 	b.RunParallel(func(p *testing.PB) {
