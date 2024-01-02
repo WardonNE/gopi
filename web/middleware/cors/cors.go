@@ -12,7 +12,7 @@ import (
 type CORSOptions struct {
 	AllowCredentials bool
 	AllowHeaders     []string
-	AllowOrigin      string
+	AllowOrigin      []string
 	AllowMethods     []string
 	ExposeHeaders    []string
 }
@@ -24,8 +24,8 @@ func New(options CORSOptions) middleware.IMiddleware {
 		if len(options.AllowHeaders) > 0 {
 			resp.Headers().Set("Access-Control-Allow-Headers", strings.Join(options.AllowHeaders, ","))
 		}
-		if options.AllowOrigin != "" {
-			resp.Headers().Set("Access-Control-Allow-Origin", options.AllowOrigin)
+		if len(options.AllowOrigin) > 0 {
+			resp.Headers().Set("Access-Control-Allow-Origin", strings.Join(options.AllowOrigin, ","))
 		} else {
 			resp.Headers().Set("Access-Control-Allow-Origin", string(*request.Header("Origin")))
 		}

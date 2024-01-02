@@ -110,10 +110,10 @@ func (router *Router) Run(addr string) error {
 			} else {
 				w.Header().Set("Access-Control-Request-Method", w.Header().Get("Allow"))
 			}
-			if router.corsOptions.AllowOrigin == "" {
+			if len(router.corsOptions.AllowOrigin) > 0 {
 				w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 			} else {
-				w.Header().Set("Access-Control-Allow-Origin", router.corsOptions.AllowOrigin)
+				w.Header().Set("Access-Control-Allow-Origin", strings.Join(router.corsOptions.AllowOrigin, ","))
 			}
 			if len(router.corsOptions.ExposeHeaders) > 0 {
 				w.Header().Set("Access-Control-Expose-Headers", strings.Join(router.corsOptions.ExposeHeaders, ","))
