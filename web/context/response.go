@@ -101,7 +101,7 @@ func (response *Response) SetHeaders(headers map[string]string) {
 
 // HasHeader returns if the specific key is exist
 func (response *Response) HasHeader(key string) bool {
-	for k, _ := range response.headers {
+	for k := range response.headers {
 		if strings.ToUpper(k) == strings.ToUpper(key) {
 			return true
 		}
