@@ -92,6 +92,10 @@ func (c *Configuration) LoadFromReader(name string, r io.Reader, opts ...Option)
 	return nil
 }
 
+func (c *Configuration) GetViper(key string) *viper.Viper {
+	return c.configs.Get(key)
+}
+
 // Has checks whether the config key exists
 func (c *Configuration) Has(key string) bool {
 	keys := strings.Split(key, ".")
@@ -102,7 +106,7 @@ func (c *Configuration) Has(key string) bool {
 	if v == nil {
 		return false
 	}
-	return v.IsSet(strings.Join(keys[1:], ","))
+	return v.IsSet(strings.Join(keys[1:], "."))
 }
 
 // Get gets the config value by specific key
