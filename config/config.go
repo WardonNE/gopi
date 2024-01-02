@@ -142,7 +142,7 @@ func (c *Configuration) GetString(key string, defaultValue ...string) *string {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetString(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetString(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -156,7 +156,7 @@ func (c *Configuration) GetBool(key string, defaultValue ...bool) *bool {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetBool(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetBool(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -170,7 +170,7 @@ func (c *Configuration) GetInt(key string, defaultValue ...int) *int {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetInt(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetInt(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -184,7 +184,7 @@ func (c *Configuration) GetInt32(key string, defaultValue ...int32) *int32 {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetInt32(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetInt32(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -198,7 +198,7 @@ func (c *Configuration) GetInt64(key string, defaultValue ...int64) *int64 {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetInt64(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetInt64(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -212,7 +212,7 @@ func (c *Configuration) GetUint(key string, defaultValue ...uint) *uint {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetUint(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetUint(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -226,7 +226,7 @@ func (c *Configuration) GetUint16(key string, defaultValue ...uint16) *uint16 {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetUint16(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetUint16(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -240,7 +240,7 @@ func (c *Configuration) GetUint32(key string, defaultValue ...uint32) *uint32 {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetUint32(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetUint32(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -254,7 +254,7 @@ func (c *Configuration) GetUint64(key string, defaultValue ...uint64) *uint64 {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetUint64(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetUint64(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -268,7 +268,7 @@ func (c *Configuration) GetTime(key string, defaultValue ...time.Time) *time.Tim
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetTime(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetTime(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -282,7 +282,7 @@ func (c *Configuration) GetDuration(key string, defaultValue ...time.Duration) *
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetDuration(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetDuration(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -296,7 +296,7 @@ func (c *Configuration) GetIntSlice(key string, defaultValue ...[]int) *[]int {
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetIntSlice(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetIntSlice(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -310,7 +310,7 @@ func (c *Configuration) GetStringSlice(key string, defaultValue ...[]string) *[]
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetStringSlice(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetStringSlice(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -324,7 +324,7 @@ func (c *Configuration) GetStringMap(key string, defaultValue ...map[string]any)
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetStringMap(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetStringMap(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -338,7 +338,7 @@ func (c *Configuration) GetStringMapString(key string, defaultValue ...map[strin
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetStringMapString(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetStringMapString(strings.Join(keys[1:], "."))
 	return &value
 }
 
@@ -352,6 +352,6 @@ func (c *Configuration) GetStringMapStringSlice(key string, defaultValue ...map[
 		return &value
 	}
 	keys := strings.Split(key, ".")
-	value = c.configs.Get(keys[0]).GetStringMapStringSlice(strings.Join(keys[1:], ","))
+	value = c.configs.Get(keys[0]).GetStringMapStringSlice(strings.Join(keys[1:], "."))
 	return &value
 }
