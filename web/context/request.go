@@ -502,8 +502,8 @@ func (request *Request) ClientIP() string {
 
 // Bind parses request into an instance of [validation.IValidateForm]
 //
-// if bindings is not provided, it uses [binding.Form] and if the request method is POST
-// it will use binding implement according to Content-Type header
+// if bindings is not provided, it uses [binding.Form] and
+// binding implements according to Content-Type header
 func (request *Request) Bind(form validation.IValidateForm, bindings ...binding.Binding) error {
 	if len(bindings) == 0 {
 		bindings = append(bindings, binding.Form)

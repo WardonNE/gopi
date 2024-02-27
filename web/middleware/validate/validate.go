@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"net/http"
 	"reflect"
 
 	"github.com/wardonne/gopi/pipeline"
@@ -16,7 +17,7 @@ func New(f validation.IValidateForm, bindings ...binding.Binding) middleware.IMi
 	return func(request *context.Request, next pipeline.Next[*context.Request, context.IResponse]) context.IResponse {
 		form := reflect.New(formType).Interface().(validation.IValidateForm)
 		if err := request.Bind(form, bindings...); err != nil {
-			panic(err)
+			return context.NewResponse(http.StatusBadRequest, err.Error())
 		}
 		form.SetEngine(f.Engine())
 		locale := request.GetString("language", "en")
