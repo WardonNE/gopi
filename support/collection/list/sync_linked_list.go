@@ -7,11 +7,13 @@ import (
 	"github.com/wardonne/gopi/support/compare"
 )
 
+// SyncLinkedList sync linked list
 type SyncLinkedList[E any] struct {
 	mu   *sync.RWMutex
 	list LinkedList[E]
 }
 
+// NewSyncLinkedList creates a new sync linked list
 func NewSyncLinkedList[E any](values ...E) *SyncLinkedList[E] {
 	syncLinkedList := new(SyncLinkedList[E])
 	syncLinkedList.mu = new(sync.RWMutex)
@@ -140,7 +142,7 @@ func (l *SyncLinkedList[E]) LastIndexOf(matcher collection.Matcher[E]) int {
 	return l.list.LastIndexOf(matcher)
 }
 
-func (l *SyncLinkedList[E]) Where(matcher collection.Matcher[E]) Interface[E] {
+func (l *SyncLinkedList[E]) Where(matcher collection.Matcher[E]) collection.Interface[E] {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.list.Where(matcher)

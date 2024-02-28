@@ -165,7 +165,7 @@ func (l *SyncArrayList[E]) SubList(from, to int) Interface[E] {
 	return syncList
 }
 
-func (l *SyncArrayList[E]) Where(matcher collection.Matcher[E]) Interface[E] {
+func (l *SyncArrayList[E]) Where(matcher collection.Matcher[E]) collection.Interface[E] {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.Where(matcher)

@@ -23,6 +23,8 @@ type Interface[E any] interface {
 	Add(value E)
 	// AddAll all new elements
 	AddAll(value ...E)
+	// Where returns all elements matches the matcher
+	Where(matcher Matcher[E]) Interface[E]
 	// Remove remove all elements which matches the matcher
 	Remove(matcher Matcher[E])
 	// Clear clears the collection

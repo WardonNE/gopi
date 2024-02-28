@@ -2,6 +2,7 @@ package set
 
 import "github.com/wardonne/gopi/support/collection"
 
+// Set set
 type Set[E comparable] interface {
 	collection.Interface[E]
 }

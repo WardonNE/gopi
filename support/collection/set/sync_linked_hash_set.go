@@ -6,11 +6,13 @@ import (
 	"github.com/wardonne/gopi/support/collection"
 )
 
+// SyncLinkedHashSet sync linked hash set
 type SyncLinkedHashSet[E comparable] struct {
 	mu  sync.RWMutex
 	set *LinkedHashSet[E]
 }
 
+// NewSyncLinkedHashSet creates a new sync linked hash set
 func NewSyncLinkedHashSet[E comparable](values ...E) *SyncLinkedHashSet[E] {
 	hashSet := new(SyncLinkedHashSet[E])
 	hashSet.set = NewLinkedHashSet[E](values...)
@@ -18,8 +20,8 @@ func NewSyncLinkedHashSet[E comparable](values ...E) *SyncLinkedHashSet[E] {
 }
 
 func (s *SyncLinkedHashSet[E]) MarshalJSON() ([]byte, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.MarshalJSON()
 }
 
@@ -30,8 +32,8 @@ func (s *SyncLinkedHashSet[E]) UnmarshalJSON(data []byte) error {
 }
 
 func (s *SyncLinkedHashSet[E]) ToArray() []E {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.ToArray()
 }
 
@@ -42,14 +44,14 @@ func (s *SyncLinkedHashSet[E]) FromArray(values []E) {
 }
 
 func (s *SyncLinkedHashSet[E]) String() string {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.String()
 }
 
 func (s *SyncLinkedHashSet[E]) Clone() collection.Interface[E] {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	hashSet := NewSyncLinkedHashSet[E]()
 	hashSet.set = s.set.Copy()
 	return hashSet
@@ -60,26 +62,26 @@ func (s *SyncLinkedHashSet[E]) Copy() *SyncLinkedHashSet[E] {
 }
 
 func (s *SyncLinkedHashSet[E]) Count() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.Count()
 }
 
 func (s *SyncLinkedHashSet[E]) IsEmpty() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.IsEmpty()
 }
 
 func (s *SyncLinkedHashSet[E]) IsNotEmpty() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.IsNotEmpty()
 }
 
 func (s *SyncLinkedHashSet[E]) Get(index int) E {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.Get(index)
 }
 
@@ -95,22 +97,28 @@ func (s *SyncLinkedHashSet[E]) Shift() E {
 	return s.set.Shift()
 }
 
-func (s *SyncLinkedHashSet[E]) IndexOf(matcher func(value E) bool) int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *SyncLinkedHashSet[E]) IndexOf(matcher collection.Matcher[E]) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.IndexOf(matcher)
 }
 
-func (s *SyncLinkedHashSet[E]) LastIndexOf(matcher func(value E) bool) int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *SyncLinkedHashSet[E]) LastIndexOf(matcher collection.Matcher[E]) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.LastIndexOf(matcher)
 }
 
-func (s *SyncLinkedHashSet[E]) Contains(matcher func(value E) bool) bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *SyncLinkedHashSet[E]) Contains(matcher collection.Matcher[E]) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.set.Contains(matcher)
+}
+
+func (s *SyncLinkedHashSet[E]) Where(matcher collection.Matcher[E]) collection.Interface[E] {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.set.Where(matcher)
 }
 
 func (s *SyncLinkedHashSet[E]) Add(value E) {
@@ -167,7 +175,7 @@ func (s *SyncLinkedHashSet[E]) RemoveAt(index int) {
 	s.set.RemoveAt(index)
 }
 
-func (s *SyncLinkedHashSet[E]) Remove(matcher func(value E) bool) {
+func (s *SyncLinkedHashSet[E]) Remove(matcher collection.Matcher[E]) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.set.Remove(matcher)
@@ -180,13 +188,13 @@ func (s *SyncLinkedHashSet[E]) Clear() {
 }
 
 func (s *SyncLinkedHashSet[E]) Range(callback func(item E) bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.set.Range(callback)
 }
 
 func (s *SyncLinkedHashSet[E]) ReverseRange(callback func(item E) bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.set.ReverseRange(callback)
 }

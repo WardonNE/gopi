@@ -207,7 +207,7 @@ func (l *LinkedList[E]) LastIndexOf(matcher collection.Matcher[E]) int {
 	return -1
 }
 
-func (l *LinkedList[E]) Where(matcher collection.Matcher[E]) Interface[E] {
+func (l *LinkedList[E]) Where(matcher collection.Matcher[E]) collection.Interface[E] {
 	l2 := NewLinkedList[E]()
 	for el := l.first; el != nil; el = el.next {
 		if matcher(el.Value) {

@@ -7,11 +7,13 @@ import (
 	"github.com/wardonne/gopi/support/collection/list"
 )
 
+// LinkedHashSet linked hash set
 type LinkedHashSet[E comparable] struct {
 	set  *HashSet[E]
 	list *list.LinkedList[E]
 }
 
+// NewLinkedHashSet creates a new linked hash set
 func NewLinkedHashSet[E comparable](values ...E) *LinkedHashSet[E] {
 	hashSet := new(LinkedHashSet[E])
 	hashSet.set = NewHashSet[E]()
@@ -106,15 +108,26 @@ func (s *LinkedHashSet[E]) Shift() E {
 	return el
 }
 
-func (s *LinkedHashSet[E]) IndexOf(matcher func(value E) bool) int {
+func (s *LinkedHashSet[E]) IndexOf(matcher collection.Matcher[E]) int {
 	return s.list.IndexOf(matcher)
 }
 
-func (s *LinkedHashSet[E]) LastIndexOf(matcher func(value E) bool) int {
+func (s *LinkedHashSet[E]) LastIndexOf(matcher collection.Matcher[E]) int {
 	return s.list.LastIndexOf(matcher)
 }
 
-func (s *LinkedHashSet[E]) Contains(matcher func(value E) bool) bool {
+func (s *LinkedHashSet[E]) Where(matcher collection.Matcher[E]) collection.Interface[E] {
+	s2 := NewLinkedHashSet[E]()
+	s.list.Range(func(value E) bool {
+		if matcher(value) {
+			s2.Add(value)
+		}
+		return true
+	})
+	return s2
+}
+
+func (s *LinkedHashSet[E]) Contains(matcher collection.Matcher[E]) bool {
 	return s.set.Contains(matcher)
 }
 
@@ -175,7 +188,7 @@ func (s *LinkedHashSet[E]) RemoveAt(index int) {
 	s.list.RemoveAt(index)
 }
 
-func (s *LinkedHashSet[E]) Remove(matcher func(value E) bool) {
+func (s *LinkedHashSet[E]) Remove(matcher collection.Matcher[E]) {
 	s.set.Remove(matcher)
 	s.list.Remove(matcher)
 }

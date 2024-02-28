@@ -7,10 +7,12 @@ import (
 	"github.com/wardonne/gopi/support/collection"
 )
 
+// HashSet hash set
 type HashSet[E comparable] struct {
 	items map[E]struct{}
 }
 
+// NewHashSet creates a new hash set
 func NewHashSet[E comparable](values ...E) *HashSet[E] {
 	hashSet := new(HashSet[E])
 	hashSet.items = make(map[E]struct{})
@@ -73,7 +75,17 @@ func (s *HashSet[E]) IsNotEmpty() bool {
 	return s.Count() > 0
 }
 
-func (s *HashSet[E]) Contains(matcher func(value E) bool) bool {
+func (s *HashSet[E]) Where(matcher collection.Matcher[E]) collection.Interface[E] {
+	s2 := NewHashSet[E]()
+	for value := range s.items {
+		if matcher(value) {
+			s2.Add(value)
+		}
+	}
+	return s2
+}
+
+func (s *HashSet[E]) Contains(matcher collection.Matcher[E]) bool {
 	for value := range s.items {
 		if matcher(value) {
 			return true
@@ -96,7 +108,7 @@ func (s *HashSet[E]) AddAll(values ...E) {
 	}
 }
 
-func (s *HashSet[E]) Remove(matcher func(value E) bool) {
+func (s *HashSet[E]) Remove(matcher collection.Matcher[E]) {
 	for value := range s.items {
 		if matcher(value) {
 			delete(s.items, value)

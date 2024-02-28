@@ -191,7 +191,8 @@ func (l *ArrayList[E]) SubList(from, to int) Interface[E] {
 	return list
 }
 
-func (l *ArrayList[E]) Where(matcher collection.Matcher[E]) Interface[E] {
+// Where returns all elements matches the
+func (l *ArrayList[E]) Where(matcher collection.Matcher[E]) collection.Interface[E] {
 	l2 := []E{}
 	for _, item := range l.items {
 		if matcher(item) {
