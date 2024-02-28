@@ -51,7 +51,7 @@ func (s *HashSet[E]) String() string {
 	return fmt.Sprintf("%v", s.ToArray())
 }
 
-func (s *HashSet[E]) Clone() collection.Collection[E] {
+func (s *HashSet[E]) Clone() collection.Interface[E] {
 	hashSet := NewHashSet[E]()
 	hashSet.items = s.items
 	return hashSet

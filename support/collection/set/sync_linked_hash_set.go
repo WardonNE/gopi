@@ -47,7 +47,7 @@ func (s *SyncLinkedHashSet[E]) String() string {
 	return s.set.String()
 }
 
-func (s *SyncLinkedHashSet[E]) Clone() collection.Collection[E] {
+func (s *SyncLinkedHashSet[E]) Clone() collection.Interface[E] {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	hashSet := NewSyncLinkedHashSet[E]()

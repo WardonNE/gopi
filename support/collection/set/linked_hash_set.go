@@ -57,7 +57,7 @@ func (s *LinkedHashSet[E]) String() string {
 	return s.list.String()
 }
 
-func (s *LinkedHashSet[E]) Clone() collection.Collection[E] {
+func (s *LinkedHashSet[E]) Clone() collection.Interface[E] {
 	hashSet := NewLinkedHashSet[E]()
 	s.list.Range(func(value E) bool {
 		hashSet.set.items[value] = struct{}{}

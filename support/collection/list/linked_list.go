@@ -9,13 +9,14 @@ import (
 	"github.com/wardonne/gopi/support/compare"
 )
 
+// LinkedList linked list
 type LinkedList[E any] struct {
 	first *element[E]
 	last  *element[E]
 	size  int
 }
 
-// NewLinkedList[E any] create an empty LinkedList
+// NewLinkedList create a new LinkedList
 func NewLinkedList[E any](values ...E) *LinkedList[E] {
 	linkedList := new(LinkedList[E])
 	linkedList.FromArray(values)
@@ -49,13 +50,12 @@ func (l *LinkedList[E]) node(index int) *element[E] {
 			el = el.next
 		}
 		return el
-	} else {
-		el := l.last
-		for i := l.size - 1; i > index; i-- {
-			el = el.prev
-		}
-		return el
 	}
+	el := l.last
+	for i := l.size - 1; i > index; i-- {
+		el = el.prev
+	}
+	return el
 }
 
 func (l *LinkedList[E]) MarshalJSON() ([]byte, error) {
@@ -98,7 +98,7 @@ func (l *LinkedList[E]) Sort(comparator compare.Comparator[E]) {
 	l.PushAll(items...)
 }
 
-func (l *LinkedList[E]) Clone() collection.Collection[E] {
+func (l *LinkedList[E]) Clone() collection.Interface[E] {
 	l2 := NewLinkedList[E]()
 	l.Range(func(value E) bool {
 		l2.Push(value)
@@ -130,6 +130,32 @@ func (l *LinkedList[E]) Get(index int) E {
 	return l.node(index).Value
 }
 
+func (l *LinkedList[E]) First() E {
+	return l.node(0).Value
+}
+
+func (l *LinkedList[E]) Last() E {
+	return l.node(l.size - 1).Value
+}
+
+func (l *LinkedList[E]) FirstWhere(matcher collection.Matcher[E]) (e E, err error) {
+	for el := l.first; el != nil; el = el.next {
+		if matcher(el.Value) {
+			return el.Value, nil
+		}
+	}
+	return e, ErrElementNotFound
+}
+
+func (l *LinkedList[E]) LastWhere(matcher collection.Matcher[E]) (e E, err error) {
+	for el := l.last; el != nil; el = el.prev {
+		if matcher(el.Value) {
+			return el.Value, nil
+		}
+	}
+	return e, ErrElementNotFound
+}
+
 func (l *LinkedList[E]) Pop() (value E) {
 	if l.size == 0 {
 		return
@@ -148,7 +174,7 @@ func (l *LinkedList[E]) Shift() (value E) {
 	return el.Value
 }
 
-func (l *LinkedList[E]) Contains(matcher func(value E) bool) bool {
+func (l *LinkedList[E]) Contains(matcher collection.Matcher[E]) bool {
 	for el := l.first; el != nil; el = el.next {
 		if matcher(el.Value) {
 			return true
@@ -157,7 +183,7 @@ func (l *LinkedList[E]) Contains(matcher func(value E) bool) bool {
 	return false
 }
 
-func (l *LinkedList[E]) IndexOf(matcher func(value E) bool) int {
+func (l *LinkedList[E]) IndexOf(matcher collection.Matcher[E]) int {
 	if l.size == 0 {
 		return -1
 	}
@@ -169,7 +195,7 @@ func (l *LinkedList[E]) IndexOf(matcher func(value E) bool) int {
 	return -1
 }
 
-func (l *LinkedList[E]) LastIndexOf(matcher func(value E) bool) int {
+func (l *LinkedList[E]) LastIndexOf(matcher collection.Matcher[E]) int {
 	if l.size == 0 {
 		return -1
 	}
@@ -181,7 +207,17 @@ func (l *LinkedList[E]) LastIndexOf(matcher func(value E) bool) int {
 	return -1
 }
 
-func (l *LinkedList[E]) SubList(from, to int) List[E] {
+func (l *LinkedList[E]) Where(matcher collection.Matcher[E]) Interface[E] {
+	l2 := NewLinkedList[E]()
+	for el := l.first; el != nil; el = el.next {
+		if matcher(el.Value) {
+			l2.Add(el.Value)
+		}
+	}
+	return l2
+}
+
+func (l *LinkedList[E]) SubList(from, to int) Interface[E] {
 	if from < 0 || from >= l.size || to < 0 || to >= l.size {
 		panic(ErrIndexOutOfRange)
 	}
@@ -292,14 +328,12 @@ func (l *LinkedList[E]) RemoveAt(index int) {
 	if index < 0 || index >= l.size {
 		panic(ErrIndexOutOfRange)
 	}
-	if el := l.node(index); el == nil {
-		return
-	} else {
+	if el := l.node(index); el != nil {
 		l.remove(el)
 	}
 }
 
-func (l *LinkedList[E]) Remove(matcher func(value E) bool) {
+func (l *LinkedList[E]) Remove(matcher collection.Matcher[E]) {
 	if l.size == 0 {
 		return
 	}

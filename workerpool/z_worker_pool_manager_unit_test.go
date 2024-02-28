@@ -9,7 +9,7 @@ import (
 )
 
 func TestWorkerPoolManager_Create(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 	wp, isNew := wpm.Create("wp", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 	assert.True(t, isNew)
 	assert.Equal(t, "wp", wp.Name())
@@ -24,7 +24,7 @@ func TestWorkerPoolManager_Create(t *testing.T) {
 }
 
 func TestWorkerPoolManager_Add(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp := NewWorkerPool(driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 	success, err := wpm.Add("wp", wp)
@@ -47,7 +47,7 @@ func TestWorkerPoolManager_Add(t *testing.T) {
 }
 
 func TestWorkerPoolManager_List(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp0, isNew := wpm.Create("wp0", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 	assert.True(t, isNew)
@@ -72,7 +72,7 @@ func TestWorkerPoolManager_List(t *testing.T) {
 }
 
 func TestWorkerPoolManager_Start(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp0, _ := wpm.Create("wp0", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 
@@ -90,7 +90,7 @@ func TestWorkerPoolManager_Start(t *testing.T) {
 }
 
 func TestWorkerPoolManager_StartAll(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp0, _ := wpm.Create("wp0", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 
@@ -108,7 +108,7 @@ func TestWorkerPoolManager_StartAll(t *testing.T) {
 }
 
 func TestWorkerPoolManager_Stop(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp0, _ := wpm.Create("wp0", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 
@@ -131,7 +131,7 @@ func TestWorkerPoolManager_Stop(t *testing.T) {
 }
 
 func TestWorkerPoolManager_StopAll(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp0, _ := wpm.Create("wp0", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 
@@ -155,7 +155,7 @@ func TestWorkerPoolManager_StopAll(t *testing.T) {
 }
 
 func TestWorkerPoolManager_Release(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp0, _ := wpm.Create("wp0", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 
@@ -180,7 +180,7 @@ func TestWorkerPoolManager_Release(t *testing.T) {
 }
 
 func TestWorkerPoolManager_ReleaseAll(t *testing.T) {
-	wpm := NewWorkerPoolManager()
+	wpm := NewManager()
 
 	wp0, _ := wpm.Create("wp0", driver.NewMemoryDriver(), MaxWorkers(1), WorkerBatch(1))
 

@@ -7,21 +7,28 @@ import (
 )
 
 var (
+	// DefaultMaxWorkers default max workers
 	DefaultMaxWorkers = 3
-	// job configs
-	DefaultJobMaxAttempts         = 3
-	DefaultJobRetryDelay          = 5 * time.Second
-	DefaultJobRetryMaxDelay       = time.Minute
-	DefaultJobRetryDelayStep      = 5 * time.Second
+	// DefaultJobMaxAttempts default job max attempts
+	DefaultJobMaxAttempts = 3
+	// DefaultJobRetryDelay default job retry delay
+	DefaultJobRetryDelay = 5 * time.Second
+	// DefaultJobRetryMaxDelay default job retry max delay
+	DefaultJobRetryMaxDelay = time.Minute
+	// DefaultJobRetryDelayStep default job retry delay step
+	DefaultJobRetryDelayStep = 5 * time.Second
+	// DefaultJobMaxExecuteTimeTotal default job max total execution time
 	DefaultJobMaxExecuteTimeTotal = 10 * time.Minute
-	// worker configs
-	DefaultWorkerBatch          = 10
-	DefaultWorkerMaxIdleTime    = 2 * time.Minute
+	// DefaultWorkerBatch default worker number per batch
+	DefaultWorkerBatch = 10
+	// DefaultWorkerMaxIdleTime default worker max idle time
+	DefaultWorkerMaxIdleTime = 2 * time.Minute
+	// DefaultWorkerStoppedTimeout default worker stopped timeout
 	DefaultWorkerStoppedTimeout = 5 * time.Minute
 )
 
-// WorkerPoolConfigs is a struct contains all worker pool configurtions
-type WorkerPoolConfigs struct {
+// Configs is a struct contains all worker pool configurtions
+type Configs struct {
 	MaxWorkers int
 	// Worker configs
 	WorkerConfigs struct {
@@ -42,7 +49,7 @@ type WorkerPoolConfigs struct {
 }
 
 // ToOptions converts the configurations to [Option]s
-func (configs *WorkerPoolConfigs) ToOptions() []Option {
+func (configs *Configs) ToOptions() []Option {
 	return []Option{
 		MaxWorkers(configs.MaxWorkers),
 		WorkerBatch(configs.WorkerConfigs.Batch),

@@ -6,6 +6,7 @@ import (
 	"github.com/wardonne/gopi/workerpool/subscriber"
 )
 
+// Option worker pool option fn
 type Option func(*WorkerPool)
 
 var noneOption = func(*WorkerPool) {}

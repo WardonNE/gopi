@@ -3,7 +3,7 @@ package set
 import "github.com/wardonne/gopi/support/collection"
 
 type Set[E comparable] interface {
-	collection.Collection[E]
+	collection.Interface[E]
 }
 
 func implements[E comparable]() {

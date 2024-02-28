@@ -8,15 +8,22 @@ import (
 )
 
 var (
-	DefaultAttempts                    = 3
-	DefaultDelay         time.Duration = 5 * time.Second
-	DefaultMaxDelay      time.Duration = time.Minute
-	DefaultDelayStep     time.Duration = 0
-	DefaultShouldRetryFn               = func(err error) bool { return err != nil }
-	DefaultOnRetry                     = func(int, error) {}
+	// DefaultAttempts default attempts
+	DefaultAttempts = 3
+	// DefaultRetryDelay default retry delay
+	DefaultRetryDelay time.Duration = 5 * time.Second
+	// DefaultMaxRetryDelay default max retry delay
+	DefaultMaxRetryDelay time.Duration = time.Minute
+	// DefaultRetryDelayStep default retry delay step
+	DefaultRetryDelayStep time.Duration = 0
+	// DefaultShouldRetryFn default function to check wheather a job should retry
+	DefaultShouldRetryFn = func(err error) bool { return err != nil }
+	// DefaultOnRetry default event on retry
+	DefaultOnRetry = func(int, error) {}
 )
 
-type RetryConfigs struct {
+// Configs retry configs
+type Configs struct {
 	Ctx         context.Context
 	Attempts    int
 	Delay       time.Duration
@@ -26,7 +33,8 @@ type RetryConfigs struct {
 	OnRetry     func(i int, err error)
 }
 
-func (r *RetryConfigs) ToOptions() []Option {
+// ToOptions convert [Configs] to options
+func (r *Configs) ToOptions() []Option {
 	return []Option{
 		Context(r.Ctx),
 		Attempts(r.Attempts),
@@ -38,64 +46,71 @@ func (r *RetryConfigs) ToOptions() []Option {
 	}
 }
 
-type retryConfigs struct {
-	ctx         context.Context
-	attempts    int
-	delay       time.Duration
-	maxDelay    time.Duration
-	delayStep   time.Duration
-	shouldRetry func(err error) bool
-	onRetry     func(i int, err error)
+// Exector the retry exector
+type Exector struct {
+	Ctx         context.Context
+	Attempts    int
+	Delay       time.Duration
+	MaxDelay    time.Duration
+	DelayStep   time.Duration
+	ShouldRetry func(err error) bool
+	OnRetry     func(i int, err error)
 }
 
-func Default() *retryConfigs {
-	return &retryConfigs{
-		ctx:         context.Background(),
-		attempts:    DefaultAttempts,
-		delay:       DefaultDelay,
-		maxDelay:    DefaultMaxDelay,
-		delayStep:   DefaultDelayStep,
-		shouldRetry: DefaultShouldRetryFn,
-		onRetry:     DefaultOnRetry,
+// Default default retry configs
+func Default() *Exector {
+	return &Exector{
+		Ctx:         context.Background(),
+		Attempts:    DefaultAttempts,
+		Delay:       DefaultRetryDelay,
+		MaxDelay:    DefaultMaxRetryDelay,
+		DelayStep:   DefaultRetryDelayStep,
+		ShouldRetry: DefaultShouldRetryFn,
+		OnRetry:     DefaultOnRetry,
 	}
 }
 
-func New(options ...Option) *retryConfigs {
-	retryConfigs := Default()
+// New create a new exector
+func New(options ...Option) *Exector {
+	exector := Default()
 	for _, option := range options {
-		option(retryConfigs)
+		option(exector)
 	}
-	return retryConfigs
+	return exector
 }
 
-func NewWithConfigs(configs *RetryConfigs) *retryConfigs {
+// NewWithConfigs create a new exector by configs
+func NewWithConfigs(configs *Configs) *Exector {
 	return New(configs.ToOptions()...)
 }
 
+// Do run a function with options
 func Do(fn func() error, options ...Option) error {
 	return New(options...).Do(fn)
 }
 
-func DoWithConfigs(fn func() error, configs *RetryConfigs) error {
+// DoWithConfigs run a function with configs
+func DoWithConfigs(fn func() error, configs *Configs) error {
 	return New(configs.ToOptions()...).Do(fn)
 }
 
-func (r *retryConfigs) Do(fn func() error) (err error) {
+// Do run job
+func (r *Exector) Do(fn func() error) (err error) {
 	attempts := 0
 	for {
 		err = fn()
-		if !r.shouldRetry(err) {
+		if !r.ShouldRetry(err) {
 			return err
 		}
-		if r.attempts > 0 && attempts == int(r.attempts)-1 {
+		if r.Attempts > 0 && attempts == int(r.Attempts)-1 {
 			return err
 		}
-		delay := utils.Min(r.delay+r.delayStep*time.Duration(attempts), r.maxDelay)
+		delay := utils.Min(r.Delay+r.DelayStep*time.Duration(attempts), r.MaxDelay)
 		attempts++
-		r.onRetry(attempts, err)
+		r.OnRetry(attempts, err)
 		select {
-		case <-r.ctx.Done():
-			return r.ctx.Err()
+		case <-r.Ctx.Done():
+			return r.Ctx.Err()
 		case <-time.After(delay):
 		}
 	}

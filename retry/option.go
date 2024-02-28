@@ -5,25 +5,25 @@ import (
 	"time"
 )
 
-type Option func(configs *retryConfigs)
+type Option func(configs *Exector)
 
-var noneOption = func(configs *retryConfigs) {
+var noneOption = func(configs *Exector) {
 }
 
 func Context(ctx context.Context) Option {
 	if ctx == nil {
 		return noneOption
 	}
-	return func(configs *retryConfigs) {
-		configs.ctx = ctx
+	return func(configs *Exector) {
+		configs.Ctx = ctx
 	}
 }
 
 // Attempts sets count of retry, setting to <= 0 means retry until success,
 // default is 3
 func Attempts(attempts int) Option {
-	return func(configs *retryConfigs) {
-		configs.attempts = attempts
+	return func(configs *Exector) {
+		configs.Attempts = attempts
 	}
 }
 
@@ -33,8 +33,8 @@ func Delay(delay time.Duration) Option {
 	if delay < 0 {
 		delay = 0
 	}
-	return func(configs *retryConfigs) {
-		configs.delay = delay
+	return func(configs *Exector) {
+		configs.Delay = delay
 	}
 }
 
@@ -44,8 +44,8 @@ func MaxDelay(maxDelay time.Duration) Option {
 	if maxDelay < 0 {
 		maxDelay = 0
 	}
-	return func(configs *retryConfigs) {
-		configs.maxDelay = maxDelay
+	return func(configs *Exector) {
+		configs.MaxDelay = maxDelay
 	}
 }
 
@@ -54,8 +54,8 @@ func DelayStep(delayStep time.Duration) Option {
 	if delayStep < 0 {
 		delayStep = 0
 	}
-	return func(configs *retryConfigs) {
-		configs.delayStep = delayStep
+	return func(configs *Exector) {
+		configs.DelayStep = delayStep
 	}
 }
 
@@ -64,8 +64,8 @@ func ShouldRetry(fn func(err error) bool) Option {
 	if fn == nil {
 		return noneOption
 	}
-	return func(configs *retryConfigs) {
-		configs.shouldRetry = fn
+	return func(configs *Exector) {
+		configs.ShouldRetry = fn
 	}
 }
 
@@ -74,7 +74,7 @@ func OnRetry(fn func(i int, err error)) Option {
 	if fn == nil {
 		return noneOption
 	}
-	return func(configs *retryConfigs) {
-		configs.onRetry = fn
+	return func(configs *Exector) {
+		configs.OnRetry = fn
 	}
 }

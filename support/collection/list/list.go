@@ -6,17 +6,23 @@ import (
 	"github.com/wardonne/gopi/support/compare"
 )
 
-type List[E any] interface {
-	collection.Collection[E]
+// Interface list interface
+type Interface[E any] interface {
+	collection.Interface[E]
 	compare.Sortable[E]
 	support.ReverseRangable[E]
 
 	Get(index int) E
+	First() E
+	Last() E
 	Pop() E
 	Shift() E
-	IndexOf(matcher func(value E) bool) int
-	LastIndexOf(matcher func(value E) bool) int
-	SubList(from, to int) List[E]
+	FirstWhere(matcher collection.Matcher[E]) (E, error)
+	LastWhere(matcher collection.Matcher[E]) (E, error)
+	IndexOf(matcher collection.Matcher[E]) int
+	LastIndexOf(matcher collection.Matcher[E]) int
+	SubList(from, to int) Interface[E]
+	Where(matcher collection.Matcher[E]) Interface[E]
 
 	Set(index int, value E)
 	Push(value E)
@@ -32,8 +38,8 @@ type List[E any] interface {
 }
 
 func implements[E any]() {
-	var _ List[E] = (*ArrayList[E])(nil)
-	var _ List[E] = (*SyncArrayList[E])(nil)
-	var _ List[E] = (*LinkedList[E])(nil)
-	var _ List[E] = (*SyncLinkedList[E])(nil)
+	var _ Interface[E] = (*ArrayList[E])(nil)
+	var _ Interface[E] = (*SyncArrayList[E])(nil)
+	var _ Interface[E] = (*LinkedList[E])(nil)
+	var _ Interface[E] = (*SyncLinkedList[E])(nil)
 }

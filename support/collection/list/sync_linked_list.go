@@ -20,8 +20,8 @@ func NewSyncLinkedList[E any](values ...E) *SyncLinkedList[E] {
 }
 
 func (l *SyncLinkedList[E]) MarshalJSON() ([]byte, error) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.MarshalJSON()
 }
 
@@ -32,8 +32,8 @@ func (l *SyncLinkedList[E]) UnmarshalJSON(data []byte) error {
 }
 
 func (l *SyncLinkedList[E]) ToArray() []E {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.ToArray()
 }
 
@@ -44,8 +44,8 @@ func (l *SyncLinkedList[E]) FromArray(values []E) {
 }
 
 func (l *SyncLinkedList[V]) String() string {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.String()
 }
 
@@ -56,12 +56,12 @@ func (l *SyncLinkedList[E]) Sort(comparator compare.Comparator[E]) {
 }
 
 func (l *SyncLinkedList[V]) Count() int {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.Count()
 }
 
-func (l *SyncLinkedList[E]) Clone() collection.Collection[E] {
+func (l *SyncLinkedList[E]) Clone() collection.Interface[E] {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l2 := NewSyncLinkedList[E]()
@@ -85,9 +85,29 @@ func (l *SyncLinkedList[E]) IsNotEmpty() bool {
 }
 
 func (l *SyncLinkedList[E]) Get(index int) E {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.Get(index)
+}
+
+func (l *SyncLinkedList[E]) First() E {
+	return l.Get(0)
+}
+
+func (l *SyncLinkedList[E]) Last() E {
+	return l.Get(l.list.size - 1)
+}
+
+func (l *SyncLinkedList[E]) FirstWhere(matcher collection.Matcher[E]) (E, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.list.FirstWhere(matcher)
+}
+
+func (l *SyncLinkedList[E]) LastWhere(matcher collection.Matcher[E]) (E, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.list.LastWhere(matcher)
 }
 
 func (l *SyncLinkedList[E]) Pop() E {
@@ -102,27 +122,33 @@ func (l *SyncLinkedList[E]) Shift() E {
 	return l.list.Shift()
 }
 
-func (l *SyncLinkedList[E]) Contains(matcher func(value E) bool) bool {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+func (l *SyncLinkedList[E]) Contains(matcher collection.Matcher[E]) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.Contains(matcher)
 }
 
-func (l *SyncLinkedList[E]) IndexOf(matcher func(value E) bool) int {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+func (l *SyncLinkedList[E]) IndexOf(matcher collection.Matcher[E]) int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.IndexOf(matcher)
 }
 
-func (l *SyncLinkedList[E]) LastIndexOf(matcher func(value E) bool) int {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+func (l *SyncLinkedList[E]) LastIndexOf(matcher collection.Matcher[E]) int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.list.LastIndexOf(matcher)
 }
 
-func (l *SyncLinkedList[E]) SubList(from, to int) List[E] {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+func (l *SyncLinkedList[E]) Where(matcher collection.Matcher[E]) Interface[E] {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.list.Where(matcher)
+}
+
+func (l *SyncLinkedList[E]) SubList(from, to int) Interface[E] {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	syncList := NewSyncLinkedList[E]()
 	list := l.list.SubLinkedList(from, to)
 	syncList.list = *list
@@ -189,7 +215,7 @@ func (l *SyncLinkedList[V]) RemoveAt(index int) {
 	l.list.RemoveAt(index)
 }
 
-func (l *SyncLinkedList[E]) Remove(matcher func(value E) bool) {
+func (l *SyncLinkedList[E]) Remove(matcher collection.Matcher[E]) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.list.Remove(matcher)
@@ -201,13 +227,13 @@ func (l *SyncLinkedList[E]) Clear() {
 	l.list.Clear()
 }
 
-func (l *SyncLinkedList[E]) Range(callback func(value E) bool) {
+func (l *SyncLinkedList[E]) Range(callback func(item E) bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.list.Range(callback)
 }
 
-func (l *SyncLinkedList[E]) ReverseRange(ReverseRange func(value E) bool) {
+func (l *SyncLinkedList[E]) ReverseRange(ReverseRange func(item E) bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.list.ReverseRange(ReverseRange)

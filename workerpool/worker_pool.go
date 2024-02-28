@@ -10,11 +10,12 @@ import (
 	"github.com/wardonne/gopi/workerpool/job"
 )
 
-type WorkerPoolStatus int
+// Status workerpool status
+type Status int
 
 // WorkerPoolStatus enums
 const (
-	WorkerPoolStatusRunning WorkerPoolStatus = iota + 1
+	WorkerPoolStatusRunning Status = iota + 1
 	WorkerPoolStatusStopped
 )
 
@@ -23,7 +24,7 @@ const (
 type WorkerPool struct {
 	id        uuid.UUID
 	name      string
-	status    WorkerPoolStatus
+	status    Status
 	createdAt time.Time
 	startAt   time.Time
 	stoppedAt time.Time
@@ -33,7 +34,7 @@ type WorkerPool struct {
 	stopChannel        chan struct{}
 	watcherStopChannel chan struct{}
 
-	driver     driver.DriverInterface
+	driver     driver.IDriver
 	maxWorkers int
 	// worker configs
 	workerConfigs struct {
@@ -56,7 +57,7 @@ type WorkerPool struct {
 //
 //	wp := DefaultWorkerPool(driver.NewQueueDriver())
 //	wp.Start()
-func DefaultWorkerPool(driver driver.DriverInterface) *WorkerPool {
+func DefaultWorkerPool(driver driver.IDriver) *WorkerPool {
 	wp := new(WorkerPool)
 	// basic attributes
 	wp.id = uuid.New()
@@ -90,7 +91,7 @@ func DefaultWorkerPool(driver driver.DriverInterface) *WorkerPool {
 //
 //	wp := NewWorkerPool(driver.NewQueueDriver(), MaxWorkers(10))
 //	wp.Start()
-func NewWorkerPool(driver driver.DriverInterface, options ...Option) *WorkerPool {
+func NewWorkerPool(driver driver.IDriver, options ...Option) *WorkerPool {
 	wp := DefaultWorkerPool(driver)
 	for _, option := range options {
 		option(wp)
@@ -98,17 +99,17 @@ func NewWorkerPool(driver driver.DriverInterface, options ...Option) *WorkerPool
 	return wp
 }
 
-// NewWorkerWithConfigs creates a [WorkerPool] instance with specific driver and custom [WorkerPoolConfigs].
+// NewWorkerPoolWithConfigs creates a [WorkerPool] instance with specific driver and custom [Configs].
 //
 // In fact, it change configs to a list of [Option]s and calls [NewWorkerPool] to create WorkerPool
 //
 // example:
 //
-//	wp := NewWorkerWithConfigs(driver.NewQueueDriver(), &WorkerPoolConfigs{
+//	wp := NewWorkerPoolWithConfigs(driver.NewQueueDriver(), &WorkerPoolConfigs{
 //		MaxWorkers: 10
 //	})
 //	wp.Start()
-func NewWorkerWithConfigs(driver driver.DriverInterface, configs *WorkerPoolConfigs) *WorkerPool {
+func NewWorkerPoolWithConfigs(driver driver.IDriver, configs *Configs) *WorkerPool {
 	return NewWorkerPool(driver, configs.ToOptions()...)
 }
 
@@ -125,7 +126,7 @@ func (wp *WorkerPool) Name() string {
 }
 
 // Status returns the active status of the WorkerPool
-func (wp *WorkerPool) Status() WorkerPoolStatus {
+func (wp *WorkerPool) Status() Status {
 	return wp.status
 }
 
@@ -165,7 +166,7 @@ func (wp *WorkerPool) start() {
 }
 
 // Dispatch dispatches job
-func (wp *WorkerPool) Dispatch(job job.JobInterface) bool {
+func (wp *WorkerPool) Dispatch(job job.Interface) bool {
 	if wp.IsStopped() {
 		return false
 	}
@@ -208,7 +209,7 @@ func (wp *WorkerPool) Stop() {
 	wp.stop()
 }
 
-// Release releases and removes the workerpool from the [WorkerPoolManager]
+// Release releases and removes the workerpool from the [Manager]
 func (wp *WorkerPool) Release() {
 	// if the worker pool is running, stop it first
 	if wp.IsRunning() {
@@ -235,14 +236,14 @@ func (wp *WorkerPool) spawnWorkers() {
 	if wp.driver.IsEmpty() {
 		return
 	}
-	nc := wp.maxWorkers / wp.workerConfigs.batch
+	nc := int64(wp.maxWorkers / wp.workerConfigs.batch)
 	if nc == 0 {
-		nc = wp.maxWorkers
+		nc = int64(wp.maxWorkers)
 	}
 	if count := wp.driver.Count(); nc > count {
 		nc = count
 	}
-	c := 0
+	var c int64 = 0
 	// awake sleeping workers
 	wp.workers.Range(func(entry *maps.Entry[uuid.UUID, *Worker]) bool {
 		if entry.Value.IsStopped() {

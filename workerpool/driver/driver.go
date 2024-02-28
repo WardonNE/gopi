@@ -6,21 +6,22 @@ import (
 	"github.com/wardonne/gopi/workerpool/subscriber"
 )
 
-type DriverInterface interface {
+// IDriver workerpool driver interface
+type IDriver interface {
 	// Count returns the count of pending jobs
-	Count() int
+	Count() int64
 	// IsEmpty returns if the count of pending jobs is zero
 	IsEmpty() bool
 	// Enqueue pushes a job to queue
-	Enqueue(job job.JobInterface) bool
+	Enqueue(job job.Interface) bool
 	// Dequeue pops a job from queue
-	Dequeue() (job.JobInterface, bool)
+	Dequeue() (job.Interface, bool)
 	// Remove removes a job from queue
-	Remove(job job.JobInterface) bool
+	Remove(job job.Interface) bool
 	// Ack acks a job
-	Ack(job job.JobInterface) bool
+	Ack(job job.Interface) bool
 	// Fail handles a failed job
-	Fail(job job.JobInterface)
+	Fail(job job.Interface)
 	// Flush removes all failed jobs
 	Flush()
 	// Reload reloads all failed jobs into queue
@@ -31,6 +32,7 @@ type DriverInterface interface {
 	DispatchEvent(event eventbus.EventInterface)
 }
 
+// AbstractDriver abstract driver
 type AbstractDriver struct {
 	EventBus eventbus.IEventBus
 }

@@ -12,8 +12,10 @@ import (
 	"github.com/wardonne/gopi/workerpool/job"
 )
 
+// WorkerStatus worker status
 type WorkerStatus int
 
+// worker status enums
 const (
 	WorkerStatusIdle WorkerStatus = iota + 1
 	WorkerStatusWorking
@@ -29,7 +31,7 @@ type Worker struct {
 	idledAt   time.Time    // last idled time
 	stoppedAt time.Time    // last stopped time
 
-	driver      driver.DriverInterface
+	driver      driver.IDriver
 	stopChannel chan struct{}
 	// worker configs
 	maxIdleTime    time.Duration
@@ -121,7 +123,7 @@ func (w *Worker) Stoppable() bool {
 	return w.status == WorkerStatusIdle || w.status == WorkerStatusWorking
 }
 
-func (w *Worker) execute(job job.JobInterface) {
+func (w *Worker) execute(job job.Interface) {
 	w.working()
 	var lifetime time.Duration
 	if v := job.MaxExecuteTime(); v != nil {
@@ -146,7 +148,7 @@ func (w *Worker) execute(job job.JobInterface) {
 			return job.Handle()
 		}
 		if job.Retryable() {
-			retryConfigs := &retry.RetryConfigs{}
+			retryConfigs := &retry.Configs{}
 			if job.MaxAttempts() != nil {
 				retryConfigs.Attempts = *job.MaxAttempts()
 			} else {
@@ -177,14 +179,13 @@ func (w *Worker) execute(job job.JobInterface) {
 			}
 			err := retry.DoWithConfigs(executor, retryConfigs)
 			return err
-		} else {
-			// if released w.driver will be nil
-			if w.driver != nil {
-				w.driver.DispatchEvent(event.NewBeforeHandle(job))
-			}
-			err := executor()
-			return err
 		}
+		// if released w.driver will be nil
+		if w.driver != nil {
+			w.driver.DispatchEvent(event.NewBeforeHandle(job))
+		}
+		err := executor()
+		return err
 	}
 	var err error
 	if lifetime > 0 {

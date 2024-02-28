@@ -3,11 +3,11 @@ package event
 import "github.com/wardonne/gopi/workerpool/job"
 
 type FailedHandle struct {
-	Job   job.JobInterface
+	Job   job.Interface
 	Error error
 }
 
-func NewFailedHandle(job job.JobInterface, err error) *FailedHandle {
+func NewFailedHandle(job job.Interface, err error) *FailedHandle {
 	return &FailedHandle{job, err}
 }
 

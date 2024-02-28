@@ -14,7 +14,7 @@ func TestRetry_SuccessAfterSomeFailure(t *testing.T) {
 	var result int
 	var attempts int
 	assert.Nil(t, retrier.Do(func() error {
-		attempts += 1
+		attempts++
 		if attempts < 2 {
 			return errors.New("err")
 		}

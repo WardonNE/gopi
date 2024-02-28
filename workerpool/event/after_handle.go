@@ -5,10 +5,10 @@ import (
 )
 
 type AfterHandle struct {
-	Job job.JobInterface
+	Job job.Interface
 }
 
-func NewAfterHandle(job job.JobInterface) *AfterHandle {
+func NewAfterHandle(job job.Interface) *AfterHandle {
 	return &AfterHandle{job}
 }
 

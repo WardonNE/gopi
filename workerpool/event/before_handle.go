@@ -3,10 +3,10 @@ package event
 import "github.com/wardonne/gopi/workerpool/job"
 
 type BeforeHandle struct {
-	Job job.JobInterface
+	Job job.Interface
 }
 
-func NewBeforeHandle(job job.JobInterface) *BeforeHandle {
+func NewBeforeHandle(job job.Interface) *BeforeHandle {
 	return &BeforeHandle{job}
 }
 
