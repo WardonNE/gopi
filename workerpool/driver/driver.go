@@ -27,7 +27,7 @@ type IDriver interface {
 	// Reload reloads all failed jobs into queue
 	Reload()
 	// Subscribe add a subscriber to queue events
-	Subscribe(subscriber subscriber.SubscriberInterface)
+	Subscribe(subscriber subscriber.Interface)
 	// DispatchEvent dispatches specifia event
 	DispatchEvent(event eventbus.EventInterface)
 }

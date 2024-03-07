@@ -19,14 +19,14 @@ type memoryJob struct {
 type MemoryDriver struct {
 	AbstractDriver
 	jobs       *list.SyncLinkedList[*memoryJob]
-	failedJobs *list.SyncLinkedList[*memoryJob]
+	failedJobs *list.SyncLinkedList[job.Interface]
 }
 
 // NewMemoryDriver creates a new memory driver
 func NewMemoryDriver() *MemoryDriver {
 	driver := new(MemoryDriver)
 	driver.jobs = list.NewSyncLinkedList[*memoryJob]()
-	driver.failedJobs = list.NewSyncLinkedList[*memoryJob]()
+	driver.failedJobs = list.NewSyncLinkedList[job.Interface]()
 	driver.AbstractDriver.EventBus = eventbus.NewEventBus()
 	_ = driver.AbstractDriver.EventBus.AddEvent(new(event.BeforeHandle))
 	_ = driver.AbstractDriver.EventBus.AddEvent(new(event.AfterHandle))
@@ -58,8 +58,13 @@ func (driver *MemoryDriver) Dequeue() (job.Interface, bool) {
 	if driver.jobs.IsEmpty() {
 		return nil, false
 	}
-	job, ok := driver.jobs.Shift(), true
-	return job.job, ok
+	if driver.jobs.IsEmpty() {
+		return nil, false
+	}
+	job, err := driver.jobs.FirstWhere(func(value *memoryJob) bool {
+		return !value.executing
+	})
+	return job.job, err == nil
 }
 
 // Remove removes a job from queue
@@ -72,12 +77,12 @@ func (driver *MemoryDriver) Remove(value job.Interface) bool {
 
 // Ack acks a job
 func (driver *MemoryDriver) Ack(job job.Interface) bool {
-	return true
+	return driver.Remove(job)
 }
 
 // Fail handles a failed job
 func (driver *MemoryDriver) Fail(job job.Interface) {
-
+	driver.failedJobs.Push(job)
 }
 
 // Flush removes all failed jobs
@@ -89,6 +94,6 @@ func (driver *MemoryDriver) Reload() {
 }
 
 // Subscribe add a subscriber to queue events
-func (driver *MemoryDriver) Subscribe(subscriber subscriber.SubscriberInterface) {
+func (driver *MemoryDriver) Subscribe(subscriber subscriber.Interface) {
 	_ = driver.EventBus.Subscribe(subscriber)
 }

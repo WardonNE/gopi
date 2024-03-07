@@ -45,7 +45,7 @@ type Configs struct {
 		MaxExecuteTime time.Duration
 	}
 	// Subscriber
-	Subscriber subscriber.SubscriberInterface
+	Subscriber subscriber.Interface
 }
 
 // ToOptions converts the configurations to [Option]s

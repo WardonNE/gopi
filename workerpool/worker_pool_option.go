@@ -99,7 +99,7 @@ func WorkerMaxStoppedTime(d time.Duration) Option {
 }
 
 // Subscriber adds a subscriber to queue events
-func Subscriber(subscriber subscriber.SubscriberInterface) Option {
+func Subscriber(subscriber subscriber.Interface) Option {
 	if subscriber == nil {
 		return noneOption
 	}

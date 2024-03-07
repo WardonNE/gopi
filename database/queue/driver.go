@@ -13,8 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// Queue database workerpool driver
-type Queue struct {
+// Driver database workerpool driver
+type Driver struct {
 	driver.AbstractDriver
 	*gorm.DB
 
@@ -22,9 +22,9 @@ type Queue struct {
 	TableName string
 }
 
-// NewQueue create a new database driver
-func NewQueue(db *gorm.DB, tableName string, queueName string) *Queue {
-	driver := new(Queue)
+// NewDriver create a new database driver
+func NewDriver(db *gorm.DB, tableName string, queueName string) *Driver {
+	driver := new(Driver)
 	driver.DB = db
 	driver.TableName = tableName
 	driver.AbstractDriver.EventBus = eventbus.NewEventBus()
@@ -36,7 +36,7 @@ func NewQueue(db *gorm.DB, tableName string, queueName string) *Queue {
 }
 
 // Count returns the count of pending jobs
-func (d *Queue) Count() int64 {
+func (d *Driver) Count() int64 {
 	var total int64
 	if err := d.Table(d.TableName).Where("queue = ?", d.Queue).
 		Count(&total).Error; err != nil {
@@ -46,12 +46,12 @@ func (d *Queue) Count() int64 {
 }
 
 // IsEmpty returns if the count of pending jobs is zero
-func (d *Queue) IsEmpty() bool {
+func (d *Driver) IsEmpty() bool {
 	return d.Count() > 0
 }
 
 // Enqueue pushes a job to queue
-func (d *Queue) Enqueue(job job.Interface) bool {
+func (d *Driver) Enqueue(job job.Interface) bool {
 	payload, err := json.Marshal(job)
 	if err != nil {
 		panic(err)
@@ -74,41 +74,46 @@ func (d *Queue) Enqueue(job job.Interface) bool {
 }
 
 // Dequeue pops a job from queue
-func (d *Queue) Dequeue() job.Interface {
-	panic("not implemented") // TODO: Implement
+func (d *Driver) Dequeue() job.Interface {
+	// d.Table(d.TableName).
+	// 	Where("queue = ?", d.Queue).
+	// 	Where("executed_at IS NULL").
+	// 	Where("avaliable_at <= ?", time.Now().UTC()).
+	// 	First()
+	return nil
 }
 
 // Remove removes a job from queue
-func (d *Queue) Remove(job job.Interface) {
+func (d *Driver) Remove(job job.Interface) {
 	panic("not implemented") // TODO: Implement
 }
 
 // Ack acks a job
-func (d *Queue) Ack(job job.Interface) {
+func (d *Driver) Ack(job job.Interface) {
 	panic("not implemented") // TODO: Implement
 }
 
 // Fail handles a failed job
-func (d *Queue) Fail(job job.Interface) {
+func (d *Driver) Fail(job job.Interface) {
 	panic("not implemented") // TODO: Implement
 }
 
 // Flush removes all failed jobs
-func (d *Queue) Flush() {
+func (d *Driver) Flush() {
 	panic("not implemented") // TODO: Implement
 }
 
 // Reload reloads all failed jobs into queue
-func (d *Queue) Reload() {
+func (d *Driver) Reload() {
 	panic("not implemented") // TODO: Implement
 }
 
 // Subscribe add a subscriber to queue events
-func (d *Queue) Subscribe(subscriber subscriber.SubscriberInterface) {
+func (d *Driver) Subscribe(subscriber subscriber.Interface) {
 	panic("not implemented") // TODO: Implement
 }
 
 // DispatchEvent dispatches specifia event
-func (d *Queue) DispatchEvent(event eventbus.EventInterface) {
+func (d *Driver) DispatchEvent(event eventbus.EventInterface) {
 	panic("not implemented") // TODO: Implement
 }
