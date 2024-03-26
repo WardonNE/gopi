@@ -9,7 +9,7 @@ type InvalidParamTypeErr struct {
 }
 
 func (e *InvalidParamTypeErr) Error() string {
-	return fmt.Sprintf("invalid args type (%t)%v for \"%s\"", e.arg, e.arg, e.token)
+	return fmt.Sprintf("invalid args type (%T)%v for \"%s\"", e.arg, e.arg, e.token)
 }
 
 // NewInvalidParamTypeErr create a new [InvalidParamTypeErr]

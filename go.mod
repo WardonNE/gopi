@@ -18,6 +18,7 @@ require (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
@@ -42,6 +43,7 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
+	gorm.io/hints v1.1.2 // indirect
 )
 
 require (
@@ -53,5 +55,5 @@ require (
 	golang.org/x/net v0.15.0 // indirect
 	google.golang.org/protobuf v1.31.0
 	gorm.io/datatypes v1.2.0
-	gorm.io/gorm v1.25.4
+	gorm.io/gorm v1.25.8
 )
