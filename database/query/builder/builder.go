@@ -41,12 +41,13 @@ func (builder *Builder) instance() *Builder {
 	if builder.onTransaction {
 		if builder.onExecutionFinished {
 			return &Builder{
-				db:            builder.db.Session(&gorm.Session{NewDB: true}),
-				conn:          builder.conn,
-				selects:       list.NewArrayList[clause.Column](),
-				joins:         list.NewArrayList[clause.Join](),
-				having:        list.NewArrayList[clause.Expression](),
-				onTransaction: true,
+				db:               builder.db.Session(&gorm.Session{NewDB: true}),
+				conn:             builder.conn,
+				selects:          list.NewArrayList[clause.Column](),
+				joins:            list.NewArrayList[clause.Join](),
+				having:           list.NewArrayList[clause.Expression](),
+				transactionLevel: builder.transactionLevel,
+				onTransaction:    true,
 			}
 		} else if builder.onTransactionBuilding {
 			return builder

@@ -3,8 +3,6 @@ package builder
 import (
 	"database/sql"
 	"fmt"
-
-	"gorm.io/gorm"
 )
 
 // Begin transaction begin
@@ -37,6 +35,17 @@ func (builder *Builder) Rollback() error {
 }
 
 // Transaction execute with transaction
-func (builder *Builder) Transaction(callback func(tx *gorm.DB) error, opts ...*sql.TxOptions) error {
-	return builder.db.Transaction(callback, opts...)
+func (builder *Builder) Transaction(callback func(builder *Builder) error, opts ...*sql.TxOptions) (err error) {
+	builder.Begin()
+	defer func() {
+		if err := recover(); err != nil {
+			err = builder.Rollback()
+		}
+	}()
+	err = callback(builder)
+	if err != nil {
+		builder.Rollback()
+		return
+	}
+	return builder.Commit()
 }
