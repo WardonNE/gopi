@@ -13,7 +13,7 @@ import (
 //	builder.Order("id") // ORDER BY id ASC
 //	builder.Order("id", true) // ORDER BY id DESC
 func (builder *Builder) Order(column any, desc bool) *Builder {
-
+	builder = builder.instance()
 	switch value := column.(type) {
 	case string, fmt.Stringer, clause.Column, *Builder, *gorm.DB:
 		builder.db = builder.db.Order(clause.OrderByColumn{
@@ -41,7 +41,7 @@ func (builder *Builder) Order(column any, desc bool) *Builder {
 //
 //	builder.OrderAsc("id") // ORDER BY id ASC
 func (builder *Builder) OrderAsc(column any) *Builder {
-
+	builder = builder.instance()
 	return builder.Order(column, false)
 }
 
@@ -49,6 +49,6 @@ func (builder *Builder) OrderAsc(column any) *Builder {
 //
 //	builder.OrderDesc("id") // ORDER BY id DESC
 func (builder *Builder) OrderDesc(column any) *Builder {
-
+	builder = builder.instance()
 	return builder.Order(column, true)
 }

@@ -9,26 +9,31 @@ import (
 
 // FirstOrCreate gets the first record, if not found, create it
 func (builder *Builder) FirstOrCreate(dest any) error {
+	builder.onExecutionFinished = true
 	return builder.DB().FirstOrCreate(dest).Error
 }
 
 // FirstOrInit gets the firsst record, if not found, return an inited instance
 func (builder *Builder) FirstOrInit(dest any) error {
+	builder.onExecutionFinished = true
 	return builder.DB().FirstOrInit(dest).Error
 }
 
 // Create create a new record
 func (builder *Builder) Create(value any) error {
+	builder.onExecutionFinished = true
 	return builder.DB().Create(value).Error
 }
 
 // CreateInBatches inserts values in batches of batchSize
 func (builder *Builder) CreateInBatches(values []any, batchSize int) error {
+	builder.onExecutionFinished = true
 	return builder.DB().CreateInBatches(values, batchSize).Error
 }
 
 // Upsert insert new records if unique key is conflict then update it
 func (builder *Builder) Upsert(values any, keys []any, updates ...string) error {
+	builder.onExecutionFinished = true
 	expr := clause.OnConflict{}
 	for _, key := range keys {
 		switch value := key.(type) {

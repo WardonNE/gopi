@@ -10,22 +10,18 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-type builderStage uint8
-
-const (
-	transaction builderStage = iota
-	building
-)
-
 // Builder query builder
 type Builder struct {
-	db       *gorm.DB
-	conn     *gorm.DB
-	distinct bool
-	selects  *list.ArrayList[clause.Column]
-	joins    *list.ArrayList[clause.Join]
-	having   *list.ArrayList[clause.Expression]
-	stage    builderStage
+	db                    *gorm.DB
+	conn                  *gorm.DB
+	distinct              bool
+	selects               *list.ArrayList[clause.Column]
+	joins                 *list.ArrayList[clause.Join]
+	having                *list.ArrayList[clause.Expression]
+	transactionLevel      uint
+	onTransaction         bool
+	onTransactionBuilding bool
+	onExecutionFinished   bool
 }
 
 // NewBuilder create a new query builder
@@ -39,6 +35,27 @@ func NewBuilder(db *gorm.DB) *Builder {
 		joins:   list.NewArrayList[clause.Join](),
 		having:  list.NewArrayList[clause.Expression](),
 	}
+}
+
+func (builder *Builder) instance() *Builder {
+	if builder.onTransaction {
+		if builder.onExecutionFinished {
+			return &Builder{
+				db:            builder.db.Session(&gorm.Session{NewDB: true}),
+				conn:          builder.conn,
+				selects:       list.NewArrayList[clause.Column](),
+				joins:         list.NewArrayList[clause.Join](),
+				having:        list.NewArrayList[clause.Expression](),
+				onTransaction: true,
+			}
+		} else if builder.onTransactionBuilding {
+			return builder
+		} else {
+			builder.onTransactionBuilding = true
+			return builder
+		}
+	}
+	return builder
 }
 
 func (builder *Builder) addClauses() *Builder {
@@ -88,12 +105,14 @@ func (builder *Builder) WithContext(ctx context.Context) *Builder {
 
 // Assign assign attributes
 func (builder *Builder) Assign(attrs ...any) *Builder {
+	builder = builder.instance()
 	builder.db = builder.db.Assign(attrs...)
 	return builder
 }
 
 // Attrs sets init attributes
 func (builder *Builder) Attrs(attrs ...any) *Builder {
+	builder = builder.instance()
 	builder.db = builder.db.Attrs(attrs...)
 	return builder
 }
@@ -105,7 +124,8 @@ func (builder *Builder) Clone() *Builder {
 
 // ToSQL returns sql
 func (builder *Builder) ToSQL() string {
-	return strings.TrimSpace(builder.addClauses().db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+	builder.onExecutionFinished = true
+	return strings.TrimSpace(builder.DB().ToSQL(func(tx *gorm.DB) *gorm.DB {
 		dest := make([]map[string]any, 0)
 		return tx.Find(&dest)
 	}))
@@ -113,12 +133,14 @@ func (builder *Builder) ToSQL() string {
 
 // Exec executes insert/update/delete raw sql
 func (builder *Builder) Exec(sql string, values ...any) error {
+	builder.onExecutionFinished = true
 	builder.db = builder.db.Exec(sql, values...)
 	return builder.db.Error
 }
 
 // Fetch executes select raw sql
 func (builder *Builder) Fetch(dest any, sql string, values ...any) error {
+	builder.onExecutionFinished = true
 	builder.db = builder.db.Exec(sql).Scan(dest)
 	return builder.db.Error
 }

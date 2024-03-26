@@ -21,7 +21,7 @@ import (
 //	query := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.Where("user_id", db) // id = (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) Where(column any, value any) *Builder {
-
+	builder = builder.instance()
 	switch v := value.(type) {
 	case *gorm.DB, *Builder, Callback:
 		var query = fmt.Sprintf("%s = (?)", builder.QuoteField(column))
@@ -50,7 +50,7 @@ func (builder *Builder) Where(column any, value any) *Builder {
 //	query := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.WhereNot("user_id", db) // id <> (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) WhereNot(column any, value any) *Builder {
-
+	builder = builder.instance()
 	switch v := value.(type) {
 	case *gorm.DB, *Builder, Callback:
 		var query = fmt.Sprintf("%s <> (?)", builder.QuoteField(column))
@@ -79,7 +79,7 @@ func (builder *Builder) WhereNot(column any, value any) *Builder {
 //	query := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.OrWhere("user_id", db) // OR id = (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) OrWhere(column any, value any) *Builder {
-
+	builder = builder.instance()
 	switch v := value.(type) {
 	case *gorm.DB, *Builder, Callback:
 		var query = fmt.Sprintf("%s = (?)", builder.QuoteField(column))
@@ -108,7 +108,7 @@ func (builder *Builder) OrWhere(column any, value any) *Builder {
 //	query := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.OrWhereNot("user_id", db) // OR id <> (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) OrWhereNot(column any, value any) *Builder {
-
+	builder = builder.instance()
 	switch v := value.(type) {
 	case *gorm.DB, *Builder, Callback:
 		var query = fmt.Sprintf("%s <> (?)", builder.QuoteField(column))
@@ -128,7 +128,7 @@ func (builder *Builder) OrWhereNot(column any, value any) *Builder {
 //
 //	builder.WhereNull("id") // id IS NULL
 func (builder *Builder) WhereNull(column any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Eq{Column: clause.Expr{
 		SQL: builder.QuoteField(column),
 	}})
@@ -139,7 +139,7 @@ func (builder *Builder) WhereNull(column any) *Builder {
 //
 //	builder.OrWhereNull("id") // OR id IS NULL
 func (builder *Builder) OrWhereNull(column any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Eq{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -152,7 +152,7 @@ func (builder *Builder) OrWhereNull(column any) *Builder {
 //
 //	builder.WhereNotNull("id") // id IS NOT NULL
 func (builder *Builder) WhereNotNull(column any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Not(clause.Eq{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -165,7 +165,7 @@ func (builder *Builder) WhereNotNull(column any) *Builder {
 //
 //	builder.OrWhereNotNull("id") // OR id IS NOT NULL
 func (builder *Builder) OrWhereNotNull(column any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Not(clause.Eq{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -178,7 +178,7 @@ func (builder *Builder) OrWhereNotNull(column any) *Builder {
 //
 //	builder.WhereEq("id", 1)
 func (builder *Builder) WhereEq(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Eq{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -192,7 +192,7 @@ func (builder *Builder) WhereEq(column any, value any) *Builder {
 //
 //	builder.WhereNeq("id", 1)
 func (builder *Builder) WhereNeq(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Neq{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -206,7 +206,7 @@ func (builder *Builder) WhereNeq(column any, value any) *Builder {
 //
 //	builder.OrWhereEq("id", 1)
 func (builder *Builder) OrWhereEq(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Eq{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -220,7 +220,7 @@ func (builder *Builder) OrWhereEq(column any, value any) *Builder {
 //
 //	builder.OrWhereNeq("id", 1)
 func (builder *Builder) OrWhereNeq(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Neq{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -241,7 +241,7 @@ func (builder *Builder) OrWhereNeq(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.WhereGt("user_id", tx) // user_id > (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) WhereGt(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Gt{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -262,7 +262,7 @@ func (builder *Builder) WhereGt(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.OrWhereGt("user_id", tx) // OR user_id > (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) OrWhereGt(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Gt{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -283,7 +283,7 @@ func (builder *Builder) OrWhereGt(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.WhereGte("user_id", tx) // user_id >= (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) WhereGte(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Gte{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -304,7 +304,7 @@ func (builder *Builder) WhereGte(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.OrWhereGte("user_id", tx) // OR user_id >= (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) OrWhereGte(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Gte{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -325,7 +325,7 @@ func (builder *Builder) OrWhereGte(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.WhereLt("user_id", tx) // user_id < (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) WhereLt(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Lt{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -346,7 +346,7 @@ func (builder *Builder) WhereLt(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.OrWhereLt("user_id", tx) // OR user_id < (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) OrWhereLt(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Lt{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -367,7 +367,7 @@ func (builder *Builder) OrWhereLt(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.WhereLte("user_id", tx) // user_id <= (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) WhereLte(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Lte{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -388,7 +388,7 @@ func (builder *Builder) WhereLte(column any, value any) *Builder {
 //	tx := db.Table("users").Where("id = ?", 1).Select("id")
 //	builder.OrWhereLte("user_id", tx) // OR user_id <= (SELECT id FROM users WHERE id = 1)
 func (builder *Builder) OrWhereLte(column any, value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Lte{
 		Column: clause.Expr{
 			SQL: builder.QuoteField(column),
@@ -409,7 +409,7 @@ func (builder *Builder) OrWhereLte(column any, value any) *Builder {
 //	tx := db.Table("users").Select("id")
 //	builder.WhereIn("id", tx) // id IN (SELECT id FROM users)
 func (builder *Builder) WhereIn(column any, values ...any) *Builder {
-
+	builder = builder.instance()
 	if len(values) == 1 {
 		query := fmt.Sprintf("%s IN (?)", builder.QuoteField(column))
 		switch v := values[0].(type) {
@@ -438,7 +438,7 @@ func (builder *Builder) WhereIn(column any, values ...any) *Builder {
 //	tx := db.Table("users").Select("id")
 //	builder.OrWhereIn("id", tx) // OR id IN (SELECT id FROM users)
 func (builder *Builder) OrWhereIn(column any, values ...any) *Builder {
-
+	builder = builder.instance()
 	if len(values) == 1 {
 		query := fmt.Sprintf("%s IN (?)", builder.QuoteField(column))
 		switch v := values[0].(type) {
@@ -467,7 +467,7 @@ func (builder *Builder) OrWhereIn(column any, values ...any) *Builder {
 //	tx := db.Table("users").Select("id")
 //	builder.WhereNotIn("id", tx) // id NOT IN (SELECT id FROM users)
 func (builder *Builder) WhereNotIn(column any, values ...any) *Builder {
-
+	builder = builder.instance()
 	if len(values) == 1 {
 		query := fmt.Sprintf("%s NOT IN (?)", builder.QuoteField(column))
 		switch v := values[0].(type) {
@@ -496,7 +496,7 @@ func (builder *Builder) WhereNotIn(column any, values ...any) *Builder {
 //	tx := db.Table("users").Select("id")
 //	builder.OrWhereNotIn("id", tx) // OR id NOT IN (SELECT id FROM users)
 func (builder *Builder) OrWhereNotIn(column any, values ...any) *Builder {
-
+	builder = builder.instance()
 	if len(values) == 1 {
 		query := fmt.Sprintf("%s NOT IN (?)", builder.QuoteField(column))
 		switch v := values[0].(type) {
@@ -518,7 +518,7 @@ func (builder *Builder) OrWhereNotIn(column any, values ...any) *Builder {
 //
 //	builder.WhereBetween("id", 1, 100) // id BETWEEN 1 AND 100
 func (builder *Builder) WhereBetween(column any, start, end any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(queryclause.Between{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Values: [2]any{
@@ -533,7 +533,7 @@ func (builder *Builder) WhereBetween(column any, start, end any) *Builder {
 //
 //	builder.OrWhereBetween("id", 1, 100) // id BETWEEN 1 AND 100
 func (builder *Builder) OrWhereBetween(column string, start, end any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(queryclause.Between{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Values: [2]any{
@@ -548,7 +548,7 @@ func (builder *Builder) OrWhereBetween(column string, start, end any) *Builder {
 //
 //	builder.WhereNotBetween("id", 1, 100) // id NOT BETWEEN 1 AND 100
 func (builder *Builder) WhereNotBetween(column string, start, end any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Not(queryclause.Between{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Values: [2]any{
@@ -563,7 +563,7 @@ func (builder *Builder) WhereNotBetween(column string, start, end any) *Builder 
 //
 //	builder.OrWhereNotBetween("id", 1, 100) // OR id NOT BETWEEN 1 AND 100
 func (builder *Builder) OrWhereNotBetween(column string, start, end any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Not(queryclause.Between{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Values: [2]any{
@@ -578,7 +578,7 @@ func (builder *Builder) OrWhereNotBetween(column string, start, end any) *Builde
 //
 //	builder.WhereLike("name", "%war%")
 func (builder *Builder) WhereLike(column any, value string) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Like{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Value:  value,
@@ -590,7 +590,7 @@ func (builder *Builder) WhereLike(column any, value string) *Builder {
 //
 //	builder.WhereNotLike("name", "%war%")
 func (builder *Builder) WhereNotLike(column any, value string) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Where(clause.Not(clause.Like{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Value:  value,
@@ -602,7 +602,7 @@ func (builder *Builder) WhereNotLike(column any, value string) *Builder {
 //
 //	builder.OrWhereLike("id", "%war%")
 func (builder *Builder) OrWhereLike(column any, value string) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Like{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Value:  value,
@@ -614,7 +614,7 @@ func (builder *Builder) OrWhereLike(column any, value string) *Builder {
 //
 //	builder.OrWhereNotLike("id", "%war%")
 func (builder *Builder) OrWhereNotLike(column any, value string) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Or(clause.Not(clause.Like{
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Value:  value,

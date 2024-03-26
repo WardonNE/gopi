@@ -2,39 +2,41 @@ package builder
 
 import (
 	"database/sql"
+	"fmt"
 
-	"github.com/wardonne/gopi/support/collection/list"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // Begin transaction begin
-func (builder *Builder) Begin(opts ...*sql.TxOptions) *Builder {
-	return &Builder{
-		db:       builder.db.Begin(opts...),
-		conn:     builder.db,
-		distinct: false,
-		selects:  list.NewArrayList[clause.Column](),
-		joins:    list.NewArrayList[clause.Join](),
-		having:   list.NewArrayList[clause.Expression](),
-		stage:    transaction,
+func (builder *Builder) Begin(opts ...*sql.TxOptions) {
+	if builder.transactionLevel == 0 {
+		builder.db = builder.db.Begin(opts...)
+		builder.onTransaction = true
+		builder.transactionLevel = 1
+	} else {
+		builder.db = builder.db.SavePoint(fmt.Sprintf("sp%d", builder.transactionLevel))
+		builder.transactionLevel++
 	}
 }
 
 // Commit transaction commit
-func (builder *Builder) Commit() *Builder {
-	builder.db = builder.db.Commit()
-	return builder
+func (builder *Builder) Commit() error {
+	builder.onTransaction = false
+	return builder.db.Commit().Error
 }
 
 // Rollback transaction rollback
-func (builder *Builder) Rollback() *Builder {
-	builder.db = builder.db.Rollback()
-	return builder
+func (builder *Builder) Rollback() error {
+	if builder.transactionLevel == 1 {
+		builder.onTransaction = false
+		return builder.db.Rollback().Error
+	}
+	builder.db = builder.db.RollbackTo(fmt.Sprintf("sp%d", builder.transactionLevel-1))
+	builder.transactionLevel--
+	return builder.db.Error
 }
 
 // Transaction execute with transaction
 func (builder *Builder) Transaction(callback func(tx *gorm.DB) error, opts ...*sql.TxOptions) error {
-
 	return builder.db.Transaction(callback, opts...)
 }

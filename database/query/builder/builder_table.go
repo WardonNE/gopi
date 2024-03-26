@@ -18,7 +18,7 @@ import (
 //		return tx.Table("users").Where("status = ?", 1).Find(&dest)
 //	})
 func (builder *Builder) Table(table any, values ...any) *Builder {
-
+	builder = builder.instance()
 	switch value := table.(type) {
 	case *Builder:
 		if len(values) == 0 {
@@ -89,7 +89,7 @@ func (builder *Builder) Table(table any, values ...any) *Builder {
 //	builder.Model(new(User))
 //	buulder.Model(&user)
 func (builder *Builder) Model(value any) *Builder {
-
+	builder = builder.instance()
 	builder.db = builder.db.Model(value)
 	return builder
 }

@@ -23,7 +23,7 @@ type selectColumn struct {
 //		},
 //	)
 func (builder *Builder) Select(columns ...any) *Builder {
-
+	builder = builder.instance()
 	for _, column := range columns {
 		switch value := column.(type) {
 		case clause.Expr:
@@ -71,7 +71,7 @@ func (builder *Builder) Select(columns ...any) *Builder {
 //		},
 //	)
 func (builder *Builder) Distinct(columns ...any) *Builder {
-
+	builder = builder.instance()
 	if len(columns) > 0 {
 		builder = builder.Select(columns...)
 	}

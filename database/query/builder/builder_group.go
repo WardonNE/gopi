@@ -16,7 +16,7 @@ import (
 //		clause.Column{Name: "department_id"},
 //	)
 func (builder *Builder) Group(columns ...any) *Builder {
-
+	builder = builder.instance()
 	for _, column := range columns {
 		switch value := column.(type) {
 		case string, clause.Column, fmt.Stringer, *Builder, *gorm.DB:
