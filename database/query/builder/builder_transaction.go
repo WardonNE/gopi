@@ -27,6 +27,7 @@ func (builder *Builder) Commit() error {
 func (builder *Builder) Rollback() error {
 	if builder.transactionLevel == 1 {
 		builder.onTransaction = false
+		builder.transactionLevel--
 		return builder.db.Rollback().Error
 	}
 	builder.db = builder.db.RollbackTo(fmt.Sprintf("sp%d", builder.transactionLevel-1))

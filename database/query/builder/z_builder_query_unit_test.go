@@ -10,29 +10,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func TestBuilder_Count(t *testing.T) {
-	t.Run("Builder.Count failure", func(t *testing.T) {
-		expectErr := errors.New("count error")
-		mock.ExpectQuery("SELECT count(*) FROM `users`").WithoutArgs().WillReturnError(expectErr)
-		var dest int64
-		err := NewBuilder(mockDB).Table("users").Count(&dest)
-		assert.ErrorIs(t, err, expectErr)
-	})
-
-	t.Run("Builder.Count success", func(t *testing.T) {
-		// var result = sqlmock.NewRows([]string{"count(*)"}).AddRow(len(mockUsers))
-		var result = sqlmock.NewRows([]string{"id"})
-		for _, item := range mockUsers {
-			result.AddRow(item["id"])
-		}
-		mock.ExpectQuery("SELECT count(*) FROM `users`").WithoutArgs().WillReturnRows(result)
-		var dest int64
-		err := NewBuilder(mockDB).Table("users").Count(&dest)
-		assert.EqualValues(t, len(mockUsers), dest)
-		assert.Nil(t, err)
-	})
-}
-
 func TestBuilder_Take(t *testing.T) {
 	t.Run("Builder.Take failure", func(t *testing.T) {
 		expectErr := errors.New("take error")
@@ -195,4 +172,21 @@ func TestBuilder_Cursor(t *testing.T) {
 			})
 		assert.Nil(t, err)
 	})
+}
+
+func TestBuilder_Exists(t *testing.T) {
+	t.Run("Builer.Exists Exists", func(t *testing.T) {
+		mock.ExpectQuery("SELECT EXISTS (SELECT * FROM `users` WHERE `id` = ? ) AS `result`").WithArgs(1).WillReturnRows(sqlmock.NewRows([]string{"result"}).AddRow(1))
+		result, err := NewBuilder(mockDB).Where("id", 1).Table("users").Exists()
+		assert.True(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Builer.Exists Not Exists", func(t *testing.T) {
+		mock.ExpectQuery("SELECT EXISTS (SELECT * FROM `users` WHERE `id` = ? ) AS `result`").WithArgs(1).WillReturnRows(sqlmock.NewRows([]string{"result"}).AddRow(0))
+		result, err := NewBuilder(mockDB).Where("id", 1).Table("users").Exists()
+		assert.False(t, result)
+		assert.Nil(t, err)
+	})
+
 }

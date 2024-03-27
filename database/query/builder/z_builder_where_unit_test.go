@@ -1449,3 +1449,47 @@ func TestBuilder_OrWhereNotLike(t *testing.T) {
 	err := NewBuilder(mockDB).Table("users").Where("status", 1).OrWhereNotLike("username", "%wardonne%").Find(&dest)
 	assert.Nil(t, err)
 }
+
+func TestBuilder_WhereExists(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE EXISTS (SELECT * FROM `departments` WHERE `departments`.`id` = `users`.`department_id` )").WithoutArgs().WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).Table("users").WhereExists(NewBuilder(mockDB).Table("departments").WhereRaw("`departments`.`id` = `users`.`department_id`")).Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_WhereNotExists(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE NOT EXISTS (SELECT * FROM `departments` WHERE `departments`.`id` = `users`.`department_id` )").WithoutArgs().WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).Table("users").WhereNotExists(NewBuilder(mockDB).Table("departments").WhereRaw("`departments`.`id` = `users`.`department_id`")).Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrWhereExists(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? OR EXISTS (SELECT * FROM `departments` WHERE `departments`.`id` = `users`.`department_id` )").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).Table("users").Where("status", 1).OrWhereExists(NewBuilder(mockDB).Table("departments").WhereRaw("`departments`.`id` = `users`.`department_id`")).Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrWhereNotExists(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? OR NOT EXISTS (SELECT * FROM `departments` WHERE `departments`.`id` = `users`.`department_id` )").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).Table("users").Where("status", 1).OrWhereNotExists(NewBuilder(mockDB).Table("departments").WhereRaw("`departments`.`id` = `users`.`department_id`")).Find(&dest)
+	assert.Nil(t, err)
+}

@@ -124,6 +124,24 @@ func (builder *Builder) OrWhereNot(column any, value any) *Builder {
 	return builder
 }
 
+// WhereRaw add where by raw sql
+//
+//	builder.WhereRaw("id = ?", 1)
+func (builder *Builder) WhereRaw(sql string, values ...any) *Builder {
+	builder = builder.instance()
+	builder.db = builder.db.Where(sql, values...)
+	return builder
+}
+
+// OrWhereRaw add where or by raw sql
+//
+//	builder.OrWhereRaw("id = ?", 1)
+func (builder *Builder) OrWhereRaw(sql string, values ...any) *Builder {
+	builder = builder.instance()
+	builder.db = builder.db.Or(sql, values...)
+	return builder
+}
+
 // WhereNull add where null clause
 //
 //	builder.WhereNull("id") // id IS NULL
@@ -619,5 +637,85 @@ func (builder *Builder) OrWhereNotLike(column any, value string) *Builder {
 		Column: clause.Expr{SQL: builder.QuoteField(column)},
 		Value:  value,
 	}))
+	return builder
+}
+
+// WhereExists add where exists
+//
+//	builder.WhereExists(NewBuilder(db).Table("users").Where("status", 1))
+func (builder *Builder) WhereExists(query any, values ...any) *Builder {
+	builder = builder.instance()
+	switch q := query.(type) {
+	case *Builder:
+		builder.db = builder.db.Where(queryclause.Exists{
+			Query: q.DB(),
+			Vars:  values,
+		})
+	default:
+		builder.db = builder.db.Where(queryclause.Exists{
+			Query: q,
+			Vars:  values,
+		})
+	}
+	return builder
+}
+
+// WhereNotExists add where NOT exists
+//
+//	builder.WhereNotExists(NewBuilder(db).Table("users").Where("status", 1))
+func (builder *Builder) WhereNotExists(query any, values ...any) *Builder {
+	builder = builder.instance()
+	switch q := query.(type) {
+	case *Builder:
+		builder.db = builder.db.Where(clause.Not(queryclause.Exists{
+			Query: q.DB(),
+			Vars:  values,
+		}))
+	default:
+		builder.db = builder.db.Where(clause.Not(queryclause.Exists{
+			Query: q,
+			Vars:  values,
+		}))
+	}
+	return builder
+}
+
+// OrWhereExists add where or exists
+//
+//	builder.OrWhereExists(NewBuilder(db).Table("users").Where("status", 1))
+func (builder *Builder) OrWhereExists(query any, values ...any) *Builder {
+	builder = builder.instance()
+	switch q := query.(type) {
+	case *Builder:
+		builder.db = builder.db.Or(queryclause.Exists{
+			Query: q.DB(),
+			Vars:  values,
+		})
+	default:
+		builder.db = builder.db.Or(queryclause.Exists{
+			Query: q,
+			Vars:  values,
+		})
+	}
+	return builder
+}
+
+// OrWhereNotExists add where or NOT exists
+//
+//	builder.OrWhereNotExists(NewBuilder(db).Table("users").Where("status", 1))
+func (builder *Builder) OrWhereNotExists(query any, values ...any) *Builder {
+	builder = builder.instance()
+	switch q := query.(type) {
+	case *Builder:
+		builder.db = builder.db.Or(clause.Not(queryclause.Exists{
+			Query: q.DB(),
+			Vars:  values,
+		}))
+	default:
+		builder.db = builder.db.Or(clause.Not(queryclause.Exists{
+			Query: q,
+			Vars:  values,
+		}))
+	}
 	return builder
 }

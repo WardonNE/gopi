@@ -4,11 +4,14 @@ import (
 	"gorm.io/gorm"
 )
 
-// Count counts matched records
-func (builder *Builder) Count(dest *int64) error {
-	builder.selects.Clear()
+// Exists select exists
+func (builder *Builder) Exists() (bool, error) {
 	builder.onExecutionFinished = true
-	return builder.DB().Count(dest).Error
+	var dest = new(struct {
+		Result bool
+	})
+	err := builder.conn.Raw("SELECT EXISTS (?) AS `result`", builder.DB()).Scan(dest).Error
+	return dest.Result, err
 }
 
 // Take gets the first matched record without specific order
