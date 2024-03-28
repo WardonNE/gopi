@@ -6,6 +6,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -156,6 +157,13 @@ func TestBuilder_Select(t *testing.T) {
 			return tx.Table("departments").Count(&count)
 		}
 		err := NewBuilder(mockDB).Table("users").Select(callback).Find(&dest)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Builder.Select(JSON_EXTRACT)", func(t *testing.T) {
+		mock.ExpectQuery("SELECT JSON_EXTRACT(`meta`,'$.department.status') FROM `users`").WithoutArgs().WillReturnRows(result)
+		var dest = make([]map[string]any, 0)
+		err := NewBuilder(mockDB).Table("users").Select(datatypes.JSONQuery("meta").Extract("department.status")).Find(&dest)
 		assert.Nil(t, err)
 	})
 }

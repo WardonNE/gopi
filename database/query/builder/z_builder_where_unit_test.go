@@ -5,6 +5,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -93,6 +94,13 @@ func TestBuilder_Where(t *testing.T) {
 			},
 			1,
 		).Find(&dest)
+		assert.Nil(t, err)
+	})
+
+	t.Run("builder.Where(JSON_EXTRACT)", func(t *testing.T) {
+		mock.ExpectQuery("SELECT * FROM `users` WHERE JSON_EXTRACT(`meta`,'$.department.status') = ?").WithArgs(1).WillReturnRows(result)
+		dest := make([]map[string]any, 0)
+		err := NewBuilder(mockDB).Table("users").Where(datatypes.JSONQuery("meta").Extract("department.status"), 1).Find(&dest)
 		assert.Nil(t, err)
 	})
 }
@@ -1491,5 +1499,132 @@ func TestBuilder_OrWhereNotExists(t *testing.T) {
 	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? OR NOT EXISTS (SELECT * FROM `departments` WHERE `departments`.`id` = `users`.`department_id` )").WithArgs(1).WillReturnRows(result)
 	var dest = make([]map[string]any, 0)
 	err := NewBuilder(mockDB).Table("users").Where("status", 1).OrWhereNotExists(NewBuilder(mockDB).Table("departments").WhereRaw("`departments`.`id` = `users`.`department_id`")).Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_WhereBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? AND (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		WhereBuilder(NewBuilder(mockDB).Where("id", 1).Where("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_WhereNotBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? AND NOT (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		WhereNotBuilder(NewBuilder(mockDB).Where("id", 1).Where("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrWhereBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? OR (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		OrWhereBuilder(NewBuilder(mockDB).Where("id", 1).Where("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+func TestBuilder_OrWhereNotBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? OR NOT (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		OrWhereNotBuilder(NewBuilder(mockDB).Where("id", 1).Where("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_WhereCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? AND (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		WhereCallback(func(builder *Builder) *Builder {
+			return builder.Where("id", 1).Where("department_id", 1)
+		}).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_WhereNotCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? AND NOT (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		WhereNotCallback(func(builder *Builder) *Builder {
+			return builder.Where("id", 1).Where("department_id", 1)
+		}).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrWhereCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? OR (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		OrWhereCallback(func(builder *Builder) *Builder {
+			return builder.Where("id", 1).Where("department_id", 1)
+		}).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrWhereNotCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` WHERE `status` = ? OR NOT (`id` = 1 AND `department_id` = 1)").WithArgs(1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Where("status", 1).
+		OrWhereNotCallback(func(builder *Builder) *Builder {
+			return builder.Where("id", 1).Where("department_id", 1)
+		}).
+		Find(&dest)
 	assert.Nil(t, err)
 }

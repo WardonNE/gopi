@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/wardonne/gopi/database/exception"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -14,18 +15,13 @@ import (
 type Callback = func(tx *gorm.DB) *gorm.DB
 
 // Clause builder clause
-type Clause = func(tx *Builder) *Builder
+type Clause = func(builder *Builder) *Builder
 
 // QuoteField returns quoted field
 func QuoteField(db *gorm.DB, field any) string {
 	switch value := any(field).(type) {
 	case fmt.Stringer:
 		return db.Statement.Quote(value.String())
-	case Clause:
-		builder := value(NewBuilder(db.Session(&gorm.Session{NewDB: true})))
-		return fmt.Sprintf("(%s)", builder.db.ToSQL(func(tx *gorm.DB) *gorm.DB {
-			return tx
-		}))
 	case Callback:
 		return fmt.Sprintf("(%s)", db.ToSQL(value))
 	case *Builder:
@@ -36,6 +32,12 @@ func QuoteField(db *gorm.DB, field any) string {
 			return tx.Find(&dest)
 		}
 		return fmt.Sprintf("(%s)", value.ToSQL(callback))
+	case *datatypes.JSONQueryExpression:
+		return db.Clauses().ToSQL(func(tx *gorm.DB) *gorm.DB {
+			stmt := tx.Statement
+			value.Build(stmt)
+			return tx
+		})
 	default:
 		return db.Statement.Quote(value)
 	}

@@ -622,3 +622,55 @@ func (builder *Builder) OrHavingNotLike(column string, value string) *Builder {
 	})))
 	return builder
 }
+
+// HavingBuilder merge having from another [Builder] with AND
+func (builder *Builder) HavingBuilder(query *Builder) *Builder {
+	builder = builder.instance()
+	builder.having.Add(clause.And(query.having.ToArray()...))
+	return builder
+}
+
+// HavingNotBuilder merge having from another [Builder] with AND NOT
+func (builder *Builder) HavingNotBuilder(query *Builder) *Builder {
+	builder = builder.instance()
+	builder.having.Add(clause.Not(query.having.ToArray()...))
+	return builder
+}
+
+// OrHavingBuilder merge having from another [Builder] with OR
+func (builder *Builder) OrHavingBuilder(query *Builder) *Builder {
+	builder = builder.instance()
+	builder.having.Add(clause.Or(clause.And(query.having.ToArray()...)))
+	return builder
+}
+
+// OrHavingNotBuilder merge having from another [Builder] with OR NOT
+func (builder *Builder) OrHavingNotBuilder(query *Builder) *Builder {
+	builder = builder.instance()
+	builder.having.Add(clause.Or(clause.Not(clause.And(query.having.ToArray()...))))
+	return builder
+}
+
+// HavingCallback having callback
+func (builder *Builder) HavingCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.HavingBuilder(callback(query))
+}
+
+// HavingNotCallback having NOT callback
+func (builder *Builder) HavingNotCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.HavingNotBuilder(callback(query))
+}
+
+// OrHavingCallback having OR callback
+func (builder *Builder) OrHavingCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.OrHavingBuilder(callback(query))
+}
+
+// OrHavingNotCallback having OR NOT callback
+func (builder *Builder) OrHavingNotCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.OrHavingNotBuilder(callback(query))
+}

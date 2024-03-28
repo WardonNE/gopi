@@ -1449,3 +1449,130 @@ func TestBuilder_OrHavingNotLike(t *testing.T) {
 	err := NewBuilder(mockDB).Table("users").Having("status", 1).OrHavingNotLike("username", "%wardonne%").Find(&dest)
 	assert.Nil(t, err)
 }
+
+func TestBuilder_HavingBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? AND (`id` = ? AND `department_id` = ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		HavingBuilder(NewBuilder(mockDB).Having("id", 1).Having("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_HavingNotBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? AND (`id` <> ? AND `department_id` <> ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		HavingNotBuilder(NewBuilder(mockDB).Having("id", 1).Having("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrHavingBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? OR (`id` = ? AND `department_id` = ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		OrHavingBuilder(NewBuilder(mockDB).Having("id", 1).Having("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+func TestBuilder_OrHavingNotBuilder(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? OR (`id` <> ? AND `department_id` <> ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		OrHavingNotBuilder(NewBuilder(mockDB).Having("id", 1).Having("department_id", 1)).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_HavingCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? AND (`id` = ? AND `department_id` = ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		HavingCallback(func(builder *Builder) *Builder {
+			return builder.Having("id", 1).Having("department_id", 1)
+		}).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_HavingNotCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? AND (`id` <> ? AND `department_id` <> ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		HavingNotCallback(func(builder *Builder) *Builder {
+			return builder.Having("id", 1).Having("department_id", 1)
+		}).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrHavingCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? OR (`id` = ? AND `department_id` = ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		OrHavingCallback(func(builder *Builder) *Builder {
+			return builder.Having("id", 1).Having("department_id", 1)
+		}).
+		Find(&dest)
+	assert.Nil(t, err)
+}
+
+func TestBuilder_OrHavingNotCallback(t *testing.T) {
+	result := sqlmock.NewRows([]string{"id", "name"})
+	for _, user := range mockUsers {
+		result.AddRow(user["id"], user["name"])
+	}
+	mock.ExpectQuery("SELECT * FROM `users` HAVING `status` = ? OR (`id` <> ? AND `department_id` <> ?)").WithArgs(1, 1, 1).WillReturnRows(result)
+	var dest = make([]map[string]any, 0)
+	err := NewBuilder(mockDB).
+		Table("users").
+		Having("status", 1).
+		OrHavingNotCallback(func(builder *Builder) *Builder {
+			return builder.Having("id", 1).Having("department_id", 1)
+		}).
+		Find(&dest)
+	assert.Nil(t, err)
+}

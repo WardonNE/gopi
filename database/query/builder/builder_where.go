@@ -719,3 +719,71 @@ func (builder *Builder) OrWhereNotExists(query any, values ...any) *Builder {
 	}
 	return builder
 }
+
+// WhereBuilder merge conditions from another [Builder] with AND
+func (builder *Builder) WhereBuilder(query *Builder) *Builder {
+	var rawSQL = query.db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		query.db.Statement.Clauses["WHERE"].Expression.Build(tx.Statement)
+		return tx
+	})
+	builder = builder.instance()
+	builder.db = builder.db.Where(clause.Expr{SQL: rawSQL})
+	return builder
+}
+
+// WhereNotBuilder merge conditions from another [Builder] with AND NOT
+func (builder *Builder) WhereNotBuilder(query *Builder) *Builder {
+	var rawSQL = query.db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		query.db.Statement.Clauses["WHERE"].Expression.Build(tx.Statement)
+		return tx
+	})
+	builder = builder.instance()
+	builder.db = builder.db.Not(clause.Expr{SQL: rawSQL})
+	return builder
+}
+
+// OrWhereBuilder merge conditions from another [Builder] with OR
+func (builder *Builder) OrWhereBuilder(query *Builder) *Builder {
+	var rawSQL = query.db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		query.db.Statement.Clauses["WHERE"].Expression.Build(tx.Statement)
+		return tx
+	})
+	builder = builder.instance()
+	builder.db = builder.db.Or(clause.Expr{SQL: rawSQL})
+	return builder
+}
+
+// OrWhereNotBuilder merge conditions from another [Builder] with OR NOT
+func (builder *Builder) OrWhereNotBuilder(query *Builder) *Builder {
+	var rawSQL = query.db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		query.db.Statement.Clauses["WHERE"].Expression.Build(tx.Statement)
+		return tx
+	})
+	builder = builder.instance()
+	builder.db = builder.db.Or(clause.Not(clause.Expr{SQL: rawSQL}))
+	return builder
+}
+
+// WhereCallback where callback
+func (builder *Builder) WhereCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.WhereBuilder(callback(query))
+}
+
+// WhereNotCallback where NOT callback
+func (builder *Builder) WhereNotCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.WhereNotBuilder(callback(query))
+}
+
+// OrWhereCallback where OR callback
+func (builder *Builder) OrWhereCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.OrWhereBuilder(callback(query))
+}
+
+// OrWhereNotCallback where OR NOT callback
+func (builder *Builder) OrWhereNotCallback(callback Clause) *Builder {
+	query := NewBuilder(builder.conn)
+	return builder.OrWhereNotBuilder(callback(query))
+}

@@ -48,9 +48,9 @@ func TestBuilder_RightJoin(t *testing.T) {
 	for _, user := range mockUsers {
 		result.AddRow(user["id"], user["name"])
 	}
-	mock.ExpectQuery("SELECT * FROM `users` LEFT JOIN departments ON departments.id = users.department_id AND departments.status = ?").WithArgs(1).WillReturnRows(result)
+	mock.ExpectQuery("SELECT * FROM `users` RIGHT JOIN departments ON departments.id = users.department_id AND departments.status = ?").WithArgs(1).WillReturnRows(result)
 	var dest = make([]map[string]any, 0)
-	err := NewBuilder(mockDB).Table("users").LeftJoin("departments", "departments.id = users.department_id AND departments.status = ?", 1).Find(&dest)
+	err := NewBuilder(mockDB).Table("users").RightJoin("departments", "departments.id = users.department_id AND departments.status = ?", 1).Find(&dest)
 	assert.Nil(t, err)
 }
 

@@ -131,17 +131,3 @@ func (builder *Builder) ToSQL() string {
 		return tx.Find(&dest)
 	}))
 }
-
-// Exec executes insert/update/delete raw sql
-func (builder *Builder) Exec(sql string, values ...any) error {
-	builder.onExecutionFinished = true
-	builder.db = builder.db.Exec(sql, values...)
-	return builder.db.Error
-}
-
-// Fetch executes select raw sql
-func (builder *Builder) Fetch(dest any, sql string, values ...any) error {
-	builder.onExecutionFinished = true
-	builder.db = builder.db.Exec(sql).Scan(dest)
-	return builder.db.Error
-}
